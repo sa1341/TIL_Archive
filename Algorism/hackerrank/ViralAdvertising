@@ -1,0 +1,34 @@
+package hackerrank;
+
+import java.util.Scanner;
+
+public class ViralAdvertising {
+
+    private static final int friendOfNumber = 3;
+
+    static int viralAdvertising(int n) {
+
+        int liked = 2;
+        int shared = 0;
+        int cumulative = liked;
+
+        for (int i = 1; i < n; i++) {
+            shared = liked * friendOfNumber;
+            liked = (shared / 2);
+            cumulative += liked;
+        }
+
+        return cumulative;
+    }
+
+    private static final Scanner sc = new Scanner(System.in);
+
+    public static void main(String[] args) {
+
+        int n = sc.nextInt();
+        int result = viralAdvertising(n);
+
+        System.out.println(result);
+        sc.close();
+    }
+}
