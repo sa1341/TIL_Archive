@@ -3,7 +3,7 @@ package kakao;
 public class ConvertRightBracket {
 
 
-    // 올바른 괄호인지
+    // 올바른 괄호인지 판단하는 메소드
     public boolean isRightBracket(String p) {
 
         int temp = 0;
@@ -19,7 +19,7 @@ public class ConvertRightBracket {
         return true;
     }
 
-
+     // 올바른 괄호 문자열이 아니면 올바른 괄호 문자열로 변경하는 메소드
     public String convertBracket(String p) {
 
         //문자열 길이가 0 이거나 ""(빈문자열)이면 "" 리턴
@@ -45,7 +45,7 @@ public class ConvertRightBracket {
         }
     }
 
-
+    // 괄호 문자 w를 u, v로 분기하는 메소드
     public String balancedBracket(String w) {
 
         int temp = 0;
@@ -66,7 +66,7 @@ public class ConvertRightBracket {
         return reverse(u.substring(1, u.length() - 1));
     }
 
-
+    // 문자열 역순화 하는 
     public String reverse(String u){
 
         StringBuilder sb = new StringBuilder();
