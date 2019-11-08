@@ -87,7 +87,6 @@ SoccerPlayer 클래스에서 Comparable<SoccerPlayer>를 implements 하였습니
 
 여기서 본인이 정렬하고자 하는 클래스를 `Comparable<클래스명>` 형태로 넣어주는 것을 잊어서는 안됩니다.
 
-출처: https://cwondev.tistory.com/15 [잡동사니 정보공유]
 
 ```java
 import java.util.ArrayList;
