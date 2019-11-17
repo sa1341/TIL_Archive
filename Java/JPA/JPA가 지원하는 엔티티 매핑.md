@@ -230,9 +230,10 @@ private static void logic(EntityManager em){
 ### 필드와 컬럼 매핑: 레퍼런스
 #### @Enumerated
 자바의 enum 타입을 매핑할 때 사용합니다.
-|  <center>속성</center> |  <center>기능</center> | <center>기본값</center> 
-|:--------|:--------:|--------:|
-| value | <center>EnumType.ORIGINAL: enum 순서를 데이터베이스에 저장 EnumType.STRING: enum 이름을 데이터베이스에 저장</center> | <center>EnumType.ORIGINAL</center> |
+
+속성 | 기능 | 기본값 |
+:--------|:--------:|--------:| 
+| @Enumerated | EnumType.ORIGINAL: enum 순서를 데이터베이스에 저장  EnumType.STRING: enum 이름을 데이터베이스에 저장 | EnumType.ORIGINAL |
 
 ex)
 ```java
