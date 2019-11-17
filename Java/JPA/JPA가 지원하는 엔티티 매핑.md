@@ -106,14 +106,15 @@ spring:
 이 속성을 추가하면 어플리케이션 실행 시점에 데이터베이스 테이블을 자동으로 생성합니다.
 
 #### hibernate.ddl-auto 속성
-  <center>옵션</center> |  <center>설명</center> | 
-|:--------|:--------:|--------:|
-| create | <center>기존 테이블을 삭제하고 새로 생성한다. DROP + CREATE </center> 
-| create-drop| <center>create 속성에 추가로 어플리케이션을 종료할 때 생성한 DDL을 제거한다. DROP + CREATE + DROP</center> 
+
+|  <center>옵션</center> |  <center>설명</center> | 
+|:--------|:--------:|
+| create | <center>기존 테이블을 삭제하고 새로 생성한다. DROP + CREATE</center> | 
+| create-drop | <center>create 속성에 추가로 어플리케이션을 종료할 때 생성한 DDL을 제거한다. DROP + CREATE + DROP</center> 
 | update | <center>데이터베이스 테이블과 엔터티 매핑정보를 비교해서 변경 사항만 수정한다.</center> 
 | validate | <center>데이터베이스 테이블과 엔터티 매핑정보를 비교해서 차이가 있으면 경고를 남기고 애플리케이션을 실행하지 않는다. 이설정은 DDL을 수정하지 않는다.</center> 
-| none | <center>자동 생성 기능을 사용하지 않으려면 hibernate.ddl-auto 속성 자체를 삭제하거나 유효하지 않는 옵션 값을 주면 된다.<center> 
- 
+| none | <center>자동 생성 기능을 사용하지 않으려면 hibernate.ddl-auto 속성 자체를 삭제하거나 유효하지 않는 옵션 값을 주면 된다.</center> 
+
 > 운영 서버에서 create, create-drop, update처럼 DDL을 수정하는 옵션은 절대 사용하면 안됩니다. 오직 개발 서버나 개발 단계에서만 사용해야 합니다. 이 옵션들은 운영 중인 데이터베이스 컬럼을 삭제할 수 있기 때문입니다.
 
 - 개발 초기 단계는 create 또는 update
