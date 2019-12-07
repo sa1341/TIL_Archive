@@ -279,5 +279,253 @@ HMACSHA256(
 
 
 
+# JWT 토큰 생성 구현 예제
 
- #### 참고 사이트 : https://velopert.com/2350, https://bcho.tistory.com/999, https://sanghaklee.tistory.com/47
+이제 위에서 배운 Claim 토큰 기반 시스템인 JWT 토큰을 생성하고 토큰을 검증하는 간단한 예제를 Intellij 스프링 부트를 통해서 작성해보았습니다.
+
+
+# 1.dependecy 추가
+
+JWT 토큰을 생성해주는 라이브러리가 필요한데 저는 스프링 부트에서 jjwt를 이용하셔 생성하도록 하였습니다.
+
+```java
+dependencies{
+    implementation 'io.jsonwebtoken:jjwt:0.6.0'
+}
+```
+
+builder는 `gradle`을 사용하기 때문에 위와 같이 설정을 추가하였습니다. 
+사실 `0.9.0 버전` 이상도 존재하지만 이번 예제에서는 JWT를 맛보기로 알아보기 위해서 구글링을 통해서 `0.6.0 버전`으로 적용해보았습니다. 
+
+
+# 2. JWT 흐름
+
+- JWT 토큰 생성
+- JWT 토큰 파싱 및 검증
+
+> 토큰 생성
+```java
+// Interceptor 구현
+@Component
+@RequiredArgsConstructor
+public class JwtInterceptor implements HandlerInterceptor {
+
+    private static final String HEADER_AUTH = "Authorization";
+
+    private final JwtService jwtService;
+
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+
+        final String token = request.getHeader(HEADER_AUTH);
+
+        // preHandle의 return은 컨트롤러 요청 uri로 가도 되냐 안되냐를 허가하는 의미합니다.
+        // 따라서 리턴 값이 true 일때, 요청한 컨트롤러 메소드를 수행합니다.
+        if(token !=null && jwtService.isValid(token)){
+            return true;
+        }else{
+            throw new UnauthorizedException();
+        }
+    }
+}
+
+
+public class UnauthorizedException extends RuntimeException {
+
+    private static final long serialVersionUID = -2238030302650813813L;
+
+    public UnauthorizedException(){
+        super("계정 권한이 유효하지 않습니다.\n다시 로그인을 해주세요.");
+    }
+}
+```
+가장 먼저 HandlerInterceptor를 구현한 JwtInterceptor를 작성하였습니다. JwtInterceptor는 preHandle 메소드만 오버라이드 하여 `Authorization` Key 값인 String 타입의 `JWT(JSON Web Token)`이 존재하는지 checking 하는 역할을 합니다. 만약 토큰이 존재하지 않는다면 클라이언트에서 요청한 Url에 매핑되는 컨트롤러의 메소드를 수행하지 않고 예외를 발생시키도록 코드를 작성하였습니다.
+
+
+# Config(설정)
+```java
+@Configuration
+@RequiredArgsConstructor
+public class WebConfig implements WebMvcConfigurer {
+
+    private final JwtInterceptor jwtInterceptor;
+
+    private static final String[] EXCLUDE_PATHS = {
+            "/member/**",
+            "/error/**"
+    };
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(jwtInterceptor)
+                .addPathPatterns("/**")
+                .excludePathPatterns(EXCLUDE_PATHS);
+    }
+}
+```
+
+Spring Boot에서 WebMvcConfigurer는 자동 구성된 Spring MVC 구성을 큰 변경없이 추가적인 조작을 하기 위해서 구현합니다. `addInterceptors()` 메소드만 선택적으로 구현하였습니다. 위에서 제가 작성한 JwtInterceptor를 빈으로 주입하여 Spring MVC에서 Interceptor로 추가하였습니다. 또한 클라이언트에서 요청한 Url을 가로채도록 `addPathPatterns()` 메소드로 경로패턴을 정의하였고, `excludePathPatterns()` 메소드로 `"/member/**", "/error/**"`로 들어오는 요청만은 가로채지 않도록 제외시켰습니다.
+
+
+# 서비스
+
+이제 가장 중요한 JWT 생성을 하는 서비스 코드를 작성하였습니다.
+
+```java
+public interface JwtService {
+
+    public <T> String create(String key, T data, String subject);
+
+    public boolean isValid(String jwt);
+
+    public Map<String, Object> get(String key);
+}
+
+@Service
+@Slf4j
+public class JwtServiceImpl implements JwtService {
+
+    //서버쪽에서 토큰을 생성하기 위한 비밀키 입니다.
+    private static final String SALT = "secret";
+
+
+    // Jwt를 이용하여 파싱을 하는데 여기서 파싱이 된다면 정상적인 토큰으로 간주하고 여기서 파싱이 되지 않는다면 catch 문에 잡힙니다.
+    @Override
+    public boolean isValid(String jwt) {
+        try{
+            Jws<Claims> claims = Jwts.parser()
+                    .setSigningKey(this.generateKey())
+                    .parseClaimsJws(jwt);
+            return true;
+        }catch (Exception e){
+            throw new UnauthorizedException();
+        }
+    }
+
+    //byte로 변환된 비밀키를 이용하여 JWT에서 제공하는 SHA256 알고리즘을 이용해 해시값을 생성한 후에 인코딩 후 JWT 서명을 생성합니다.
+    @Override
+    public <T> String create(String key, T data, String subject) {
+
+        String jwt = Jwts.builder()
+                .setHeaderParam("typ", "JWT")
+                .setHeaderParam("alg", "HS256")
+                .setSubject(subject)
+                .claim("exp", System.currentTimeMillis() + (1000 *60))
+                .claim(key, data)
+                .signWith(SignatureAlgorithm.HS256, this.generateKey())
+                .compact();
+        return jwt;
+    }
+
+    // 비밀키를 UTF-8로 인코딩하여 byte 형태로 변환합니다.
+    private byte[] generateKey() {
+        byte[] key = null;
+        try {
+            // SALT 값을 UTF-8로 인코딩한 각각의 문자열들의 byte 값을 담고 있는 배열을 리턴합니다.
+            key = SALT.getBytes("UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            if (log.isInfoEnabled()) {
+                e.printStackTrace();
+            } else {
+                log.error("Making JWT Key Error ::: {}", e.getMessage());
+            }
+        }
+        return key;
+    }
+}
+```
+
+- 토큰 생성
+
+    클라이언트에서 로그인을 통해서 인증을 성공하게 된다면 서버측에서 JWT 토큰을 생성하여 Response Header에 넣어서 클라이언트에 전송해줘야 하는데 `create()` 메소드로 Jwts의 builder() 메소드로 JWT 토큰을 생성하고 있습니다. 보시면 chain 방식으로 각각의 `JWT를 구성하는 Header(헤더), Payload(데이터), Sign(서명)`을 설정해주고 있습니다. 헤더의 경우 위에서 언급했기 때문에 자세한 내용은 생략하겠습니다.
+
+    Payload는 회원정보, 만료시간 1분을 넣어주었습니다. 토큰의 변조를 방지하기 위해서 가장 중요한 Sing은 위에서 정의한 비밀키 `secret`를 바이트 타입으로 변환 후에  JWT가 제공해주는 대표적인 해시 알고리즘인 `HSA256`방식으로 암호화 하도록 설정하였 습니다. 그리고 마지막으로 토큰을 새성하기 위해서는 Jwts.builder().compact()를 호출하면 됩니다.
+
+
+
+
+- 토큰 검증
+
+클라이언트에서 정상적으로 생성된 토큰을 받은 후에 서버의 API를 호출하거나 접근 권한이 필요한 Resource들에 접근하게 된다면 JWT 토큰을 통해서 서버에서 자체적으로 검증을 해야하는데 저는 이부분을 간단한게 `isValid()` 메소드를 호출하여 검증하도록 하였습니다.
+
+```java
+@Override
+public boolean isValid(String jwt) {
+    try{
+        Jws<Claims> claims = Jwts.parser()
+                .setSigningKey(this.generateKey())
+                .parseClaimsJws(jwt);
+        return true;
+    }catch (Exception e){
+        throw new UnauthorizedException();
+    }
+}
+```
+
+우선 JWT 토큰은 String 타입으로 생성이 됩니다. 우리는 이것을 우리가 사용하기 위한 형태로 `parsing`하기 위해서 Jwts.parse()를 이용해야 합니다. 그 후 token을 생성할 때 사용했던 비밀키를 set 해줘야 합니다. `setSigningKey(this.generateKey())` 다음으로는 parseClaimsJws() 메소드를 이용해 토큰을 jws로 파싱합니다.
+
+만약 정상적인 토큰이라면 true를 리턴할 것이고, 파싱이 안되는 토큰이면 비정상으로 판단하여 `UnauthorizedException` 예외를 발생시킬 것입니다.
+
+
+
+# Controller
+
+```java
+@RestController
+@RequestMapping("/member")
+@RequiredArgsConstructor
+@Slf4j
+public class MemberRestController {
+
+    private final MemberService memberService;
+
+    private final JwtService jwtService;
+
+    @PostMapping("/signin")
+    public Result signin(HttpServletResponse response){
+
+        // 회원가입 수행
+        Member newMember = new Member();
+        newMember.setUid("dlawnsdud2");
+        newMember.setUpw("wnsdud2");
+        newMember.setEmail("a7900@gmai.com");
+        newMember.setUname("임준영");
+
+        log.info("" + newMember.getUid() + " " + newMember.getUpw() + " " + newMember.getEmail() + " " + newMember.getUname());
+
+        memberService.save(newMember);
+
+        Member findMember = memberService.findById(newMember.getUid());
+
+        // JWT 토큰을 생성할때 Payload 부분에서 회원 정보를 넣어주도록 설정하였습니다. 
+        String token = jwtService.create("username", findMember,findMember.getUid());
+        // Response Header에 JWT 토큰을 넣어줍니다.
+        response.setHeader("Authorization", token);
+        Result result = new Result();
+        result.setData(findMember);
+
+        return result;
+    }
+}
+```
+
+위의 컨트롤러에서는 단순하게 회원가입 샘플을 만들기 귀찮아서 임의로 값을 아무거나 넣어서 Member 객체를 생성하였습니다. 사실.. 위의 코드들을 작성한 목적은 JWT 토큰이 제대로 생성이 되고 정상적인 토큰인지 확인하는것이 목적이기 때문에 양해 부탁드립니다.
+
+결과적으로 Response 객체의 Header에 `Authorization`을 Key 값으로, String 타입인 JWT 토큰은 value로 값을 넣어주었습니다.
+
+
+
+#### 실행 결과
+
+
+#### PostMan(포스트맨)
+![스크린샷 2019-12-08 오전 1 33 57](https://user-images.githubusercontent.com/22395934/70377702-d173ce00-195a-11ea-8a5e-b9218c238b3c.png)
+
+
+#### [jwt.io](https://jwt.io/) 검증 결과
+![스크린샷 2019-12-08 오전 1 25 07](https://user-images.githubusercontent.com/22395934/70377599-9b821a00-1959-11ea-800b-bc7ecc77029c.png)
+
+이미지를 보시면 왼쪽이 Encoded된 문자열이고, 오른쪽이 Encoded 된 문자열을 Decoded하면 오른쪽과 같은 Data로 됩니다.
+
+
+ #### 참고 사이트 : https://velopert.com/2350, https://bcho.tistory.com/999, https://sanghaklee.tistory.com/47,https://coding-start.tistory.com/157
