@@ -47,3 +47,250 @@ public class Worker {
 ```
 
 Worker가 제대로 동작하려면 jobQueue나 Transcoder를 구현한 콘크리트 클래스의 객체가 필요합니다. 비슷하게 JobCLI 클래스도 다음 코드처럼 JobQueue에 작업 데이터를 넣어야 하는데, 이를 수행하려면 JobQueue를 구현한 객체를 구해야 합니다.
+
+```java
+public class JobCLI {
+    public void interact() {
+        printInputSourceMesssage();
+        String source = getSourceFromConsole();
+        printInputTargetMessage();
+        String target = getTargetFromConsole();
+
+        JobQueue jobQueue = ...; // JobQueue를 구합니다.
+        jobQueue.addJob(new JobData(source, target));
+    }
+}
+```
+
+Worker와 JobCLI가 동작하려면 JobQueue와 Transcoder의 실제 객체를 구할 수 있는 방법이 필요합니다. 이를 위해 Locator라는 객체를 사용하기로 결정했다고 해봅시다. Locator 클래스는 아래 코드에서 보는 것처럼 사용할 객체를 제공해 줍니다.
+
+
+```java
+public class Worker {
+
+    public void run() {
+        JobQueue jobQueue = Locator.getInstance().getJobQueue();
+        Transcoder transcoder = Locator.getInstance().getTranscoder();
+
+        while(someRunningCondition) {
+            ...
+        }
+    }
+}
+
+public class JobCLI {
+
+    public void interact() {
+        ...
+        JobQueue jobQueue = Locator.getInstance().getJobQueue();
+        jobQueue.addJob(new JobData(source, target));
+        ...
+    }
+}
+```
+
+Locator 클래스는 Worker와 jobCLI가 사용할 JobQueue 객체와 Transcoder 객체를 제공하는 기능을 정의하고 있으며, 아래처럼 구현하였습니다.
+
+```java
+public class Locator {
+
+    private static Locator instance;
+
+    public static Locator getInstance() {
+        return instance;
+    }
+
+    public static void init(Locator locator) {
+        this.instance = locator;
+    }
+
+    private JobQueue jobQueue;
+    private Transcoder transcoder;
+
+    public Locator(JobQueue jobQueue, Transcoder transcoder) {
+        this.jobQueue = jobQueue;
+        this.transcoder = transcoder;
+    }
+
+    public JobQueue getJobQueue() { return jobQueue; }
+    public Transcoder getTranscoder() { return transcoder; }
+}
+```
+
+Locator 클래스는 Worker 클래스와 같은 패키지에 위치시켜야 합니다. 이렇게 같은 패키지에 위치시켜야하는 이유는 Locator를 다른 패키지에 위치시킬 경우 패키지 간 순환 의존이 발생하기 때문입니다. 만약에 Locator 클래스가 다른 패키지인 locator 패키지에 위치한다면 transcoder 패키지는 locator 패키지에 의존하게 되고, Locator 클래스가  JobQueue 타입과 Transcoder 타입에 의존하므로 다시 locator 패키지가 transcoder 패키지에 의존하게 됩니다. 이런 순환 의존이 발생할 경우 한 패키지의 변경이 다른 패키지에 영향을 줄 가능성이 높아지기 때문에, 순환 의존은 발생시키지 않는 것이 향후 유지 보수에 유리합니다.
+
+Locator 객체를 이용해서 JobQueue 객체와 Transcoder 객체를 설정해 주면, Worker와 JobCLI는 설정한 객체를 사용하게 됩니다. 여기서 질문이 발생합니다. 그렇다면 과연 누가 Locator 객체를 초기화 해 줄 것인가? 그리고 JobCLI 객체와 Worker 객체를 생성하고 실행해 주는건 누구일까요?
+
+드디어 메인(main) 영역이 출현할 차례가 되었습니다. 메인 영역은 다음 작업을 수행합니다.
+
+- 어플리케이션 영역에서 사용될 객체를 생성합니다.
+- 각 객체 간의 의존 관계를 설정합니다.
+- 어플리케이션을 실행합니다.
+
+이 어플리케이션을 위한 메인 영역 코드는 아래와 같이 작성할 수 있습니다.
+
+```java
+public class Main {
+
+    public static void main(String[] args) {
+        // 상위 수준 모듈인 transcoder 패키지에서 사용할
+        // 하위 수준 모듈 객체 생성
+        JobQueue jobQueue = new FileJobQueue();
+        Transcoder trascoder = new FfmpegTrascoder();
+
+        // 상위 수준 모듈이 하위 수준 모듈을 사용할 수 있도록 Locator 초기화
+        Locator locator = new Locator(jobQueue, trascoder);
+        Locator.init(locator);
+
+        // 상위 수준 모듈 객체를 생서앟고 실행
+        final Worker worker = new Worker();
+        Thread t = new Thread(new Runnable() {
+            public void run() {
+                worker.run();
+            }
+        });
+
+        JobCLI cli = new JobCLI();
+        cli.interact();
+    }
+}
+```
+
+Main 클래스의 main() 메소드는 어플리케이션을 실행하는데 필요한 저수준 모듈 객체를 먼저 생성하고, Locator를 설정합니다. 이를 통해 Worker와 JobCLI는 FileJobQueue 객체와 FfmpegTranscoder 객체를 사용할 수 있게 됩니다.
+
+메인 영역은 어플리케이션 영역의 객체를 생성하고, 설정하고, 실행하는 책임을 갖기 때문에, 애플리케이션 영역에서 사용할 하위 수준의 모듈을 변경하고 싶다면 메인 영역을 수정하게 됩니다. 예를 들어, FileJobQueue 객체 대신 DbJobQueue 객체를 사용하고 싶다면 메인 영역에서 FileJobQueue 대신 DbJobQueue 객체를 생성하고 조립해 주면 됩니다.
+
+위 코드에서 알 수 있는 것은 모든 의존은 메인 영역에서 어플리케이션 영역으로 향한다는 것입니다. 반대의 경우인 어플리케이션 영역에서 메인 영역으로의  의존은 존재하지 않습니다. 이는 메인 영역을 변경한다고 해도 어플리케이션 영역은 변경되지 않는다는 것을 뜻합니다. 따라서 어플리케이션에서 사용할 객체를 교체하기 위해 메인 영역의 코드를 수정하는 것은 어플리케이션 영역에는 어떠한 영향을 끼지지 않습니다. 이번 포스팅에서는 객체들을 연결하기 위한 용도로 Locator 클래스를 사용했는데, Main 클래스는 이 Locator 클래스를 통해서 Worker 객체와 JobCLI 객체가 필요로 하는 객체를 설정했습니다.
+
+Worker 객체와 JobCLI 객체는 Locator를 이용해서 필요한 객체를 가져온 뒤에 원하는 기능을 실행하였습니다. 이렇게 사용할 객체를 제공하는 책임을 갖는 객체를 서비스 로케이터라고 부릅니다.
+
+서비스 로케이터 방식은 로케이터를 통해서 필요로 하는 객체를 직접 찾는 방식인데, 이 방식에는 몇 가지 단점이 존재합니다. 그래서, 서비스 로케이터를 사용하기보다는 외부에서 사용할 객체를 주입해 주는 DI방식을 사용하는 것이 일반적이다. 본 장에서는 먼저 DI가 무엇인지 알아보고, 그 뒤에서 서비스 로케이터와 비교해 보도록 하겠습니다.
+
+
+## DI(Dependency Injection)을 이용한 의존 객체 사용
+
+사용할 객체를 직접 생성할 경우, 아래 코드처럼 콘크리트 클래스에 대한 의존이 발생하게 됩니다.
+
+```java
+public class Worker {
+
+    public void run() {
+        JobQueue jobQueue = new FileJobQueue(); // DIP 위반
+    }
+
+}
+```
+콘크리트 클래스를 직접 사용해서 객체를 새엇ㅇ하게 되면 의존 역전 원칙을 위반하게 되며, 결과적으로 확장 폐쇄 원칙을 위반하게 됩니다. SOLID 원칙에서 설명했듯이 이는 변화에 경직된 유연하지 못한 코드를 만들게 됩니다. 또한, 서비스 로케이터를 사용하면 서비스 로케이터를 통해서 의존 객체를 찾게 되는데, 이 경우 몇가지 단점이 발생합니다.
+
+이런 단점을 보완하기 위한 방법이 DI(Dependency Injection; 의존 주입)입니다. DI는 필요한 객체를 직접 생성하거나 찾지 않고 외부에서 넣어주는 방식입니다. DI 자체의 구현은 매우 간단한데, 사용할 객체를 전달받을 수 있는 방법을 제공하면 DI를 적용하기 위한 모든 준비가 끝납니다.
+
+예를 들어, 아래 코드와 같이 Worker 클래스에 사용할 객체를 전달받을 수 있는 생성자를 추가하는 것으로 DI를 적용할 수 있게 됩니다.
+
+```java
+public class Worker {
+    private JobQueue jobQueue;
+    public Transcoder transcoder;
+
+    // 외부에서 사용할 객체를 전달받을 수 있는 방법 제공
+    public Worker(JobQueue jobQueue, Transcoder transcoder) {
+        this.jobQueue = jobQueue;
+        this.transcoder = transcoder;
+    }
+
+    public void run() {
+        while(someRunningCodition) {
+            JobData jobData = jobQueue.getJob();
+            transcoder.transcode(jobData.getSource(), jobData.getTarget());
+        }
+    }
+}
+```
+
+Worker 클래스와 비슷하게 JobCLI 클래스도 생성자를 통해서 사용할 JobQueue 객체를 전달받도록 수정할 수 있을 것입니다.
+
+```java
+public class JobCLI {
+
+    private JobQueue jobQueue;
+
+    public JobCLI(JobQueue jobQueue) {
+        this.jobQueue = jobQueue;
+    }
+
+    public void interact() {
+        ...
+        jobQueue.addJob(new JobData(source, target));
+        ...
+    }
+}
+```
+
+생성자를 이용해서 의존 객체를 전달받도록 구현하면, 이제 메인 영역의 Main 클래스는 아래와 같이 바뀝니다.
+
+```java
+public class Main() {
+    public static void main(String[] args) {
+
+        // 상위 수준 모듈인 transcoder 패키지에서 사용할
+        // 하위 수준 모듈 객체 생성
+        JobQueue jobQueue = new FileJobQueue();
+        Transcoder transcoder = new FfmpegTranscoder();
+
+        // 상위 수준 모듈 객체를 생성하고 실행
+        final Worker worker = new Worker(jobQueue, transcoder);
+
+        Thread t = new Thread(new Runnable() {
+            public void run() {
+                worker.run();
+            }
+        });
+
+        JobCLI cli = new JobCLI(jobQueue);
+        cli.interact();
+    }   
+}
+```
+
+수정된 Main 클래스를 보면 Worker 생성자를 호출할 때, Worker 객체가 사용할 JobQueue 객체와 Transcoder 객체를 전달하고 있습니다. 동일하게 JobCLI 객체를 생성할 때에도, 이 객체가 사용할 JobQueue 객체를 전달하고 있습니다. 여기서 알 수 있는건 Worker 객체나 JobCLI 객체는 스스로 의존하는 객체를 찾거나 생성하지 않고, main() 메서드에서 생성자를 통해 이들이 사용할 객체를 주입한다는 점입니다. 이렇게 누군가가 외부에서 의존하는 객체를 넣어주기 때문에, 이런 방식을 의존 주입이라고 부르는 것입니다.
+
+DI를 통해서 의존 객체를 관리할 때에는 객체를 생성하고 각 객체들을 의존 관계에 따라 연결해주는 조립 기능이 필요합니다. 위 코드에서 Main 클래스가 조립기의 역할을 함께 하고 있는데, 조립기를 별도로 분리하면 향후에 조립기 구현 변경의 유연함을 얻을 수 있습니다.
+예를 들어, 조립기를 아래코드와 같이 구현했다고 합시다.
+
+```java
+public class Assembler {
+    public void createAndWriter() {
+        JobQueue jobQueue = new FileJobQueue();
+        Transcoder transcoder = new FfmpegTranscoder();
+        this.worker = new Worker(jobQueue, transcoder);
+        this.jobCLI = new JobCLI(jobQueue);
+    }
+
+    public Worker getWorker() {
+        return this.worker;
+    }
+
+    public JobCLI getJobCLI() {
+        return this.jobCLI;
+    }
+    ...
+}
+```
+
+Assembler 클래스의 createAndWire() 메서드는 어플리키에션 영역에서 사용할 객체를 생성하고 생성자를 이용해서 의존 객체를 전달해 주고 있습니다. 또한, 실행 대상이 되는 객체를 제공하기 위한 메서드인 getWorker()와 getJobCLI()를 제공하고 있습니다.
+
+이제 Main 클래스는 Assembler에게 객체 생성과 조립 책임을 위임한 뒤에 Assembler가 생성한 Worker 객체와 JobCLI 객체를 구하는 방식으로 변경됩니다.
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        Assembler assembler = new Assembler();
+        assembler.createAndWire();
+        final Worker worker = assembler.getWorker();
+        Jobcli jobCli = assembler.getJobCLI();
+        ...
+    }
+}
+```
+
+이렇게 객체 조립 기능이 분리되면, 이후에 XML 파일을 이용해서 객체 생성과 조립에 대한 정보를 설정하고, 이 XML 파일을 읽어와 초기화 해주도록 구현을 변경할 수 있을 것입니다.
+이 대목에서 뭔가 떠오르는 것이 있을 것입니다. 그렇습니다 자바를 주로 사용하고 있다면, 웹 개발에서 많이 사용되는 스프링 프레임워크가 떠오를 것인데, 스프링 프레임워크가 바로 객체를 생성하고 조립해주는 기능을 제공하는 DI 프레임워크입니다.
