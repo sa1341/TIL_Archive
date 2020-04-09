@@ -294,3 +294,118 @@ public class Main {
 
 이렇게 객체 조립 기능이 분리되면, 이후에 XML 파일을 이용해서 객체 생성과 조립에 대한 정보를 설정하고, 이 XML 파일을 읽어와 초기화 해주도록 구현을 변경할 수 있을 것입니다.
 이 대목에서 뭔가 떠오르는 것이 있을 것입니다. 그렇습니다 자바를 주로 사용하고 있다면, 웹 개발에서 많이 사용되는 스프링 프레임워크가 떠오를 것인데, 스프링 프레임워크가 바로 객체를 생성하고 조립해주는 기능을 제공하는 DI 프레임워크입니다.
+
+## 생성자 방식과 설정 메소드 방식
+DI를 적용하려면 의존하는 객체를 전달받을 수 있는 방법을 제공해야 하는데, 이 방법에는 크게 다음 두 가지 방식이 존재합니다.
+
+- 생성자 방식
+- 설정 메서드 방식
+
+생성자 방식은 생성자를 통해서 의존 객체를 전달받는 방식입니다. 앞에서 봤던 예가 바로 생성자 방식을 사용했습니다.
+
+```java
+public class JobCLI {
+
+    private JobQueue jobQueue;
+
+
+    public JobCLI(jobQueue jobQueue) {
+        this.jobQueue = jobQueue;
+    }
+
+    public void interact() {
+        ...
+        this.jobQueue.addJob(jobData);
+        ...
+    }
+}
+```
+
+생성자를 통해 전달받은 객체를 필드에 보관한 뒤, 메서드에서 사용하게 됩니다.
+
+설정 메소드 방식은 메서드를 이용해서 의존 객체를 전달받습니다. 아래 코드는 설정 메서드 방식의 예입니다.
+
+
+```java
+public class Worker {
+
+    private jobQueue jobQueue;
+    private Trranscoder transcoder;
+
+    public void setJobQueue(JobQueue jobQueue) {
+        this.jobQueue = jobQueue;
+    }
+
+    public void setTranscoder(Transcoder transcoder) {
+        this.transcoder = transcoder;
+    }
+
+    public void run() {
+        while(someRunningCondition) {
+            JobData jobData = jobQueue.getJob();
+            transcoder.transcode(jobData.getSource(), jobData.getTarget());
+        }
+    }
+}
+```
+
+setJobQueue() 메서드와 setTranscoder() 메서드는 파라미터로 전달받은 의존 객체를 필드에 보관하며, 다른 메서드에서는 필드를 사용해서 의존 객체의 기능을 실행합니다. 위 코드에서는 자바빈 프로퍼티 규약에 따라 리턴 타입이 void이고 메서드 이름이 setXXXX()의 형식을 갖도록 작성했지만, 다음과 같이 작성해도 무방합니다.
+
+```java
+public void configure(JobQueue jobQueue, Transcoder transcoder) {
+    this.jobQueue = jobQueue;
+    this.transcoder = transcoder;
+}
+
+// 메서드 체이닝이 가능하도록 기턴 타입을 void에서 Worker로 변경
+public Worker setJobQueue(JobQueue jobQueue) {
+    this.jobQueue = jobQueue;
+    return this;
+}
+
+public Worker setTranscoder(Transcoder transcoder) {
+    this.transcoder = transcoder;
+    return this;
+}
+```
+
+설정 메서드를 어떻게 구현할지 여부는 사용할 DI 프레임워크에 따라 달라질 수 있습니다.
+
+예를 들어, 스프링 프레임워크의 초기 버전은 public void setSome(Some some) 형식의 설정 메서드를 지원했기에 한 번에 여러 의존 객체를 전달하려면 생성자 방식을 사용해야 했습니다.
+
+생성자 방식이나 설정 메서드 방식을 이용해서 의존 객체를 주입할 수 있게 되었다면, 조립기는 생성자와 설정 메서드를 이용해서 의존 객체를 전달하게 됩니다.
+
+```java
+public class Assembler {
+    public void createAndWire() {
+        JobQueue jobQueue = new FileJobQueue();
+        Transcoder transcoder = new FfmpegTranscoder();
+
+        this.worker = new Worker();
+        //  설정 메서드로 의존 객체를 받음
+        this.worker.setJobQueue(jobQueue);
+        this.worker.setTranscoder(transcoder);  
+
+        // 생성자로 의존 객체 받음 
+        this.jobCLI = new JobCLI(jobQueue);
+    }
+
+    public Worker getWorker() {
+        return this.worker;
+    }
+
+    public JobCLI getJobCLI() {
+        return this.jobCLI;
+    }
+    ...
+}
+```
+
+
+### 각 방식의 장단점
+
+DI 프레임워크가 의존 객체 주입을 어떤 방식까지 지원하느냐에 따라 달라지겠지만, 생성자 방식과 설정 메서드 방식 중에서 개발자들은 생성자 방식을 더 많이 선호합니다.
+
+그 이유는 생성자 방식은 객체를 생성하는 시점에 필요한 모든 의존 객체를 준비할 수 있기 때문입니다. 생성자 방식은 생성자를 통해서 필요한 의존 객체를 전달받기 때문에, 객체를 생성하는 시점에 의존 객체가 정상인지 확인할 수 있습니다.
+
+
