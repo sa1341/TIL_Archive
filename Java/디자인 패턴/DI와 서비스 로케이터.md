@@ -408,4 +408,166 @@ DI 프레임워크가 의존 객체 주입을 어떤 방식까지 지원하느�
 
 그 이유는 생성자 방식은 객체를 생성하는 시점에 필요한 모든 의존 객체를 준비할 수 있기 때문입니다. 생성자 방식은 생성자를 통해서 필요한 의존 객체를 전달받기 때문에, 객체를 생성하는 시점에 의존 객체가 정상인지 확인할 수 있습니다.
 
+```java
+public class JobCLI {
+    private JobQueue jobQueue;
+
+    public JobCLI(JobQueue jobQueue) {
+        // 생성자 방식은 객체 생성 시점에서 의존 객체가 완전한지 
+        // 확인할 수 있음
+        if(jobQueue == null) 
+            throw new IllegalArgumentException();
+        
+        this.jobQueue = jobQueue;
+    }
+}
+```
+
+생성 시점에 의존 객체를 모두 받기 때문에, 한 번 객체가 생성되면 객체가 정상적으로 동작함을 보장할 수 있게 됩니다.
+
+```java
+// 정상 생성인 경우
+JobCLI jobCli = new JobCLI(jobQueue);
+jobCli.interact(); // jobQueue 의존 객체가 존재합니다.
+
+// 비정상 생성인 경우
+JobCLI jobCli = new JobCLI(null); // 생성 시점에 익셉션 발생
+jobCli.interact(); // 이 코드는 실행되지 않음
+```
+
+생성자 방식을 사용하려면 의존 객체가 먼저 생성되어 있어야 하므로, 의존 객체를 먼저 생성할 수 없다면 생성자 방식을 사용할 수 없게 됩니다.
+
+생성자 방식과 달리 설정 메서드 방식은 객체를 생성한 뒤에 의존 객체를 주입하게 됩니다. 이 경우 의존 객체를 설정하지 못한 상태에서 객체를 사용할 수 있게 되므로, 객체의 메서드를 실행하는 과정에서 NullPointException이 발생할 수 있게 됩니다.
+
+```java
+Worker worker = new Worker();
+// 객체 생성 후, 의존 객체를 실수로 설정하지 않음
+// worker.setJobQueue(jobQueue);
+// worker.setTranscoder(transcoder);
+
+// jobQueue와 trnascoder가 null이므로, NullPointException 발생
+worker.run();
+```
+
+생성자 방식과 달리 설정 메서드 방식은 객체를 생성한 이후에 의존 객체를 설정할 수 있기 때문에, 어떤 이유로 인해 의존할 객체가 나중에 생성된다면 설정 메서드 방식을 사용해야 합니다.
+
+```java
+Worker worker = new Worker();
+worker.setJobQueue(new FileJobQueue(someValueAfterCreatingWorkerObject));
+```
+
+또 의존할 객체가 많을 경우, 설정 메서드 방식은 메서드 이름을 통해서 어떤 의존 객체가 설정되는지 보다 쉽게 알수 있으며, 이는 코드 가독성을 높여주는 효과가 있습니다.
+
+```java
+Worker worker = new Worker();
+worker.setJobQueue(...); // 메서드 이름으로 의존 객체를 알 수 있습니다.
+worker.setTranscoder(...);
+worker.setLogSender(...);
+worker.setStateListener(...);
+```
+
+## DI와 테스트
+단위 테스트는 한 클래스의 기능을 테스트하는데 초점을 맞춥니다. 예를 들어, 아래 그림과 같은 구조로 클래스와 인터페이스를 구현하고 있다고 합시다.
+
+![Untitled Diagram (1)](https://user-images.githubusercontent.com/22395934/79063306-c56a9500-7cdb-11ea-9c95-73c6b98fcba8.png)
+
+
+아직 FileJobQueue 클래스나 FfmpegTrnascoder 클래스의 구현이 완료되지 않는 상황입니다. 이 상태에서 Worker 클래스가 정상적으로 동작하는지 확인하려면 어떻게 해야 할까요? 이럴 경우 Mock 객체를 사용해서 해결할 수도 있습니다.
+
+JobQueue 인터페이스를 상속한 FileJobQueue 클래스와 DbJobQueue 클래스 그리고 Transcoder 인터페이스를 상속한 FfmpegTranscoder 클래스와 SolTranscoder 클래스의 구현이 아직 완료되지 않더라도, 우리는 Mock 객체를 이용해서 Worker 클래스를 테스트할 수 있습니다. 특히, Worker 클래스가 DI 패턴을 따른다면, 생성자나 설정 메서드를 이용해서 Mock 객체를 쉽게 전달할 수 있다.
+
+```java
+@Test
+public void shouldRunSuccessfully() {
+    JobQueue mockJobQueue = ...; // Mockito 등을 이용해서 Mock 객체 생성
+    Transcoder mockTranscoder = ...; // Mock 객체 생성
+
+    Worker worker = new Worker();
+    worker.setJobQueue(mockJobQueue);
+    worker.setTranscoder(mockTrnascoder);
+    worker.run(); // Mock 객체를 이용한 실행
+}
+```
+DI를 사용하지 않는 상황을 생각해 봅시다. 이 경우 JobQueue의 구현 객체를 구할 수 있는 방법이 필요합니다. JobQueue의 구현 객체를 구할 수 있도록 하기 위해 JobQueue를 추상 클래스로 바꾼 뒤에 static 메서드를 이용해서 JobQueue 객체를 제공하는 방법을 선택했다고 합시다.
+
+```java
+public abstract class JobQueue {
+    // static 메서드로 JobQueue의 구현 객체 제공
+    public static JobQueue getInstance() {
+        return new DbJobQueue();
+    }
+}
+```
+이제 Worker 클래스는 JobQueue.getInstance() 메서드를 이용해서 JobQueue 객체를 구하고 필요한 기능을 실행할 것입니다.
+
+```java
+public class Worker {
+    public void run() {
+        JobQueue jobQueue = JobQueue.getInstance();
+        when(someRunningCondition) {
+            JobData jobData = jobQueue.getJob();
+            ...
+        }
+    }
+}
+```
+
+Worker 클래스의 run() 메서드가 정상적으로 동작하는지 테스트를 해야 하는데, 아직 DbJobQueue 클래스의 구현이 완성되지 않습니다. 그런데 , 위 코드에서는 JobQueue.getInstance() 메서드를 이용해서 사용할 JobQueue 객체를 제공하므로, Worker 클래스를 테스트하려면 JobQueue.getInstance() 메서드가 Mock 객체를 리턴하도록 코드를 수정해야 합니다. 한 클래스의 테스트 때문에 다른 클래스의 코드를 변경해 주는 상황이 발생하는 것입니다. 게다가 Mock 객체를 이용한 테스트를 마치면, 다시 원래대로 JobQueue 코드를 되돌려야 합니다. Worker 코드의 일부가 변경되어 다시 Worker 클래스를 테스트하려면 똑같은 과정을 또 해야 합니다.
+
+이런 문제가 DI를 적용했을 때에는 발생하지 않습니다. DbJobQueue의 구현이 완료되었는지 여부에 상관없이 Mock 객체를 이용해서 Worker 클래스를 테스트할 수 있고, Mock 객체를 생성하기 위해 기존의 다른 코드를 변경할 필요가 없게 됩니다.
+
+
+## 스프링 프레임워크 예
+대표적인 DI 프레임워크인 스프링 프레임워크는 생성자 방식과 설정 메서드 방식을 모두 지원하고 있습니다. 스프링은 XML 파일을 이용해서 객체를 어떻게 생성하고 조립할지를 설정합니다. 
+
+XML 설정 파일을 작성했다면, 스프링 프레임워크가 제공하는 클래스를 이용해서 XML 파일에 설정된 객체를 생성하고 조립할 수 있습니다. 다음은 스프링 프레임워크를 이용하는 코드의 일부를 보여주고 있다.
+
+
+```java
+ApplicationContext context = new ClassPathApplicationContext(new String[] {"config.xml"});
+Worker worker = (Worker) context.getBean("worker");
+JobCLI jobCli = (JobCLI) context.getBean("jobCli");
+jobCli.interact();
+worker.run();
+```
+
+ClassPathApplicationContext 클래스는 XML 파일을 분석한 뒤, XML 파일에 정의되어 있는 방법으로 객체를 생성하고 연결해 주는 조립기의 역할을 수행합니다.
+
+스프링이 객체를 생성하는 과정을 완료하면, 위 코드에서 보듯이 getBean() 메서드로 객체를 구해서 원하는 기능을 실행하면 됩니다.
+
+여기서 외부 설정 파일을 사용할 경우의 장점은 의존할 객체가 변경될 때 자바 코드를 수정하고 컴파일 할 필요가 없이 XML 파일만 수정해 주면 된다는 점입니다. 스프링은 XML 기반의 다양한 설정 방법을 제공하고 있어서 보다 유연하게 객체 조립을 설정할 수 있습니다. 
+
+XML 설정 파일을 사용하는 방식은 개발자가 입력한 오타에 다소 취약합니다. XML 파일에 입력한 클래스 이름에 오타가 있을 경우, 이 사실을 알아내려면 프로그램을 실행해봐야 합니다. 프로그램을 실행할 때 XML에 오류가 있을 경우 스프링 프레임워크는 익셉션을 발생시키는데, 이 익셉션이 발생되어야 비로소 XML의 오류를 알 수 있는 것입니다. 물론, 이클립스와 인텔리제이 같은 개발 도구의 스프링 플러그인을 활용하면 XML 설정파일에 포함된 오류를 보다 빠르게 찾을 수 있긴 하지만, 모든 XML 설정 오류를 잡아 주지는 못합니다.
+
+XML을 사용할 때의 문제점을 해소하기 위한 방안으로 스프링 3버전부터는 자바 코드 기반의 설정 방식이 추가되었습니다. 예를 들어, 앞서 작성했던 XML 파일을  아래와 같은 자바 코드 기반으로 교체할 수 있습니다.
+
+```java
+@Configuration
+public class TranscoderConfig {
+
+    @Bean
+    public JobQueue jobQueue() {
+        return new FileJobQueue();
+    }
+
+    @Bean
+    public Transcoder ffmpegTranscoder() {
+        return new FfmpegTranscoder()
+    }
+
+    @Bean
+    public Worker worker() {
+        return new Worker(fileJobQueue(), ffmpegTranscoder());
+    }
+
+    @Bean
+    public jobCLI jobCli() {
+        JobCLI jobCli = new JobCLI();
+        jobCli.setJobQueue(fileJobQueue());
+        return jobCli;
+    }
+}
+```
+
+자바 기반의 설정의 장점은 오타로 인한 문제가 거의 발생하지 않는다는 점입니다. 잘못이 있을 경우 컴파일 과정에서 다 드러나기 때문에 IDE를 사용하면 설정 코드를 작성하는 시점에서 바로 확인할 수 있습니다. 반면에 의존 객체를 변경해야 할 경우, 앞서 XML 파일을 이용할 때는 파일만 변경해주면 됐지만 자바 기반 설정에서는 자바코드를 수정해서 다시 컴파일하고 배포해 주어야 하는 단점이 있습니다.
 
