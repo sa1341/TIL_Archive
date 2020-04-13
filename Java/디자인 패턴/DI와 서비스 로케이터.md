@@ -571,3 +571,132 @@ public class TranscoderConfig {
 
 자바 기반의 설정의 장점은 오타로 인한 문제가 거의 발생하지 않는다는 점입니다. 잘못이 있을 경우 컴파일 과정에서 다 드러나기 때문에 IDE를 사용하면 설정 코드를 작성하는 시점에서 바로 확인할 수 있습니다. 반면에 의존 객체를 변경해야 할 경우, 앞서 XML 파일을 이용할 때는 파일만 변경해주면 됐지만 자바 기반 설정에서는 자바코드를 수정해서 다시 컴파일하고 배포해 주어야 하는 단점이 있습니다.
 
+## 서비스 로케이터를 이용한 의존 객체 사용
+프로그램 개발 환경이나 사용하는 프레임워크의 제약으로 인해 DI 패턴을 적용할 수 없는 경우가 있습니다. 예를 들어, 모바일 앱을 개발할 때 사용되는 안드로이드 플랫폼의 경우는 화면을 생성할 때 Activity 클래스를 상속받도록 하는데, 이 때 안드로이드 실행 환경은 정해진 메서드만을 호출할 뿐, 안드로이드 프레임워크가 DI 처리를 위한 방법을 제공하지는 않습니다.
+
+```java
+public class MainActivity extends Activity {
+    private someService someService;
+
+    // 안드로이드 프레임워크가 실행해 주지 않음, 즉 DI 할 수 없음
+    public void setSomeService(SomeService someService) {
+        this.someService = someService;
+    }
+
+    // 안드로이드 프레임 워크에 의해 실행됨
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
+        ...
+    }
+}
+```
+물론, 안드로이드 프로젝트에서 소스 코드를 조작해서 DI 처리를 해주는 도구가 존재하지만, 이 방법이 널리 사용되고 있지는 않습니다. 안드로이드처럼 실행환경의 제약 때문에 DI 패턴을 적용할 수 없는 경우에는 의존 객체를 찾는 다른 방법을 모색해야 하는데, 그 방법 중 하나인 서비스 로케이터에 대해서 살펴보도록 하겠습니다.
+
+## 서비스 로케이터 구현
+서비스 로케이터는 어플리케이션에서 필요로하는 객체를 제공하는 책임을 갖습니다. 서비스 로케이터는 다음과 같이 의존 대상이 되는 객체 별로 제공 메서드를 정의합니다.
+
+```java
+public class ServiceLocator {
+    public Transcoder geTranscoder() {...}
+    public jobQueue getJobQueue() {...}
+}
+```
+
+의존 객체가 필요한 코드에서는 ServiceLocator가 제공하는 메서드를 이용해서 필요한 객체를 구한 뒤 알맞은 기능을 실행합니다.
+
+```java
+public class Worker {
+
+    public void run() {
+        ServiceLocator locator = ...; // Locator를 구하는 방법
+        JobQueue jobQueue = locator.getJobQueue(); // getJobQueue를 구합니다.
+        Transcoder transcoder = locator.getTranscoder();
+
+        while(someRunningCondition) {
+            JobData jobData = jobQueue.getJob();
+            transcoder.transcode(jobData.getSource(), jobData.getTarget());
+        }
+    }
+}
+```
+
+서비스 로케이터가 올바르게 동작하려면 서비스 로케이터 스스로 어떤 객체를 제공해야 할지를 알아야 합니다. 예를 들어, 위 코드에서 locator.getJobQueue()가 어떤 객체를 리턴해야 할지에 대해 ServiceLocator가 알 수 있어야 합니다. 앞서 DI를 사용할 때 메인 영역에서 객체를 생성했던 것과 비슷하게, 서비스 로케이터를 사용하는 경우에도 메인 영역에서 서비스 로케이터가 제공할 객체를 초기화 해줍니다.
+
+서비스 로케이터는 어플리케이션 영역의 객체에서 직접 접근하기 때문에 서비스 로케이터는 어플리케이션 영역에서 위치하게 됩니다. 메인 영역에서는 서비스 로케이터가 제공할 객체를 생성하고, 이 객체를 이용해서 서비스 로케이터를 초기화 해줍니다.
+
+```java
+//생성자를 이용해서 객체를 등록 받는 서비스 로케이터 구현
+public class ServiceLocator {
+
+    private JobQueue jobQueue;
+    private Transcoder transcoder;
+
+    public ServiceLocator(JobQueue 
+    jobQueue, Transcoder transcoder) {
+        this.jobQueue = jobQueue;
+        this.transcoder = transcoder;
+    }
+
+    public JobQueue getJobQueue() {
+        return jobQueue;
+    }
+
+    public Transcoder getTranscoder() {
+        return transcoder;
+    }      
+
+    // 서비스 로케이터 접근 위한 static 메서드
+    public static ServiceLocator instance;
+
+    public static void load(ServiceLocator locator) {
+        ServiceLocator.instance = locator;
+    }
+    
+    public static ServiceLocator getInstance() {
+        return instance;
+    }
+}
+```
+
+메인 영역의 코드에서 ServiceLocator의 생성자를 이용해서 서비스 로케이터가 제공할 객체를 설정해 주고, ServiceLocator.load() 메서드를 이용해서 메인 영역에서 사용할 ServiceLocator를 객체를 초기화 합니다.
+
+```java
+public static void main(String[] args) {
+    //의존 객체 생성
+    FileJobQueue jobQueue = new FileJobQueue();
+    FfmpegTranscoder transcoder = new FfmpegTranscoder();
+
+    // 서비스 로케이터 초기화
+    ServiceLocator locator = new ServiceLocator(jobQueue, transcoder);
+    ServiceLocator.load(locator);
+
+    // 어플리케이션 코드 실행
+    Worker worker = new Worker();   
+    JobCLI jobCli = new JobCLI();
+    jobCli.interact();
+    ...
+}
+```
+
+어플리케이션 영역 코드에서는 서비스 로케이터가 제공하는 메서드를 이용해서 필요한 객체를 구한 뒤, 해당 객체의 기능을 실행하게 됩니다.
+
+```java
+public class Worker {
+    public void run(){
+        //서비스 로케이터 이용해서 의존 객체 구함
+        ServiceLocator locator = ServiceLocator.getInstance();
+        JobQueue jobQueue = locator.getJobQueue();
+        Transcoder transcoder = locator.getTranscoder();
+
+    // 의존 객체 사용
+    while(someRunningCondition) {
+        JobData jobData = jobQueue.getJob();
+        transcoder.transcode(jobData.getSource(), jobData.getTarget()); 
+    }
+  }
+}
+```
+
+서비스 로케이터가 제공할 객체의 종류가 많을 경우, 서비스 로케이터 객체를 생성할 때 한번에 모든 객체를 전달하는 것은 코드 가독성을 떨어뜨릴 수 있습니다. 이런 경우에는 각 객체마다 별도의 등록 메서드를 제공하는 방식을 취해서 서비스 로케이터 초기화 부분의 가독성을 높여 줄 수 있습니다.
