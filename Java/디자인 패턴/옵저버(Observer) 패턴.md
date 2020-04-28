@@ -193,5 +193,34 @@ public class SpecialStatusObserver implements StatusObserver {
 ```
 SpecialStatusObserver 클래스의 onAbnormalStatus() 메서드는 status 파라미터와 statusChecker 필드를 이용해서 사이렌의 실행 조건을 판단하고 있습니다.
 
+이 코드를 보면 아래 그림처럼 SpecialStatusObserver 클래스에서 StatusChecker 클래스로의 의존이 발생하게 되는데, 이렇게 콘크리트 옵저버 클래스(SpecialStatusObserver)는 필요에 따라 특정한 콘크리트 주제 클래스(StatusChecker)에 의존하게 됩니다.
+
+![Untitled Diagram (2)](https://user-images.githubusercontent.com/22395934/80496985-d508ff80-89a4-11ea-8553-f24821abf478.png)
+
+## 옵저버에서 주제 객체 구분
+
+옵저버 패턴이 가장 많이 사용되는 영역을 꼽르라면 GUI 프로그래밍 영역일 것입니다. 버튼이 눌릴 때 로그인 기능을 호출한다고 할 때, 버튼이 주제 객체가 되고 로그인 모듈을 호출하는 객체가 옵저버가 됩니다.
+
+예를 들어, 안드로이드에서는 다음과 같이 OnClickListener 타입의 객체를 Button 객체에 등록하는데, 이 때 OnClickListener 인터페이스가 옵저버 인터페이스가 됩니다.
+
+```java
+public class MyActivity extends Activity implements View.OnClickListener {
+
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
+        ...
+        Button loginButton = getViewById(R.id.main_login);
+        loginButton.setOnClickListener(this);
+    }
+
+    @Override
+    public void onClick(View v) { // OnClickListener의 메서드
+        login(id, password);
+    }
+}
+```
+
+한 개의 옵저버 객체를 여러 주제 객체에 등록할 수도 있을 것입니다. GUI 프로그래밍을 하면 이런 상황이 빈번하게 발생합니다.
 
 
