@@ -50,3 +50,19 @@ public CustomerAccount getAccountBySurname(String surname) {
 
 또한, 자바는 변수가 null값을 가질 수 있는지 또는 메소드가 null을 반환할 수 있는지를 나타내는 @NotNull과 같은 어노테이션 주석을 지원합니다. 컴파일러나 IDE와 같은 도구는 코드가 이 주석에서 기대한 동작과 일치하는지 확인하고, 그에 따라 컴파일 시에 문제가 있는 코드를 보고할 수 있습니다.
 
+null에 대항하기 위한 또 다른 무기는 Optional 타입입니다. 값을 가지지 않을 가능성이 있는 변수 (즉, null과 같은 값)을 캡슐화하고, 이럴 경우 프로그래머가 무엇을 해야 할지 고려하도록 만듭니다. 이는 null 검사를 수행해야 한다고 의식하는 것보다 잠재적으로 누락할 수 있는 값을 안전하고 쉽게 처리할 수 있게 해줍니다.
+
+아래 예제 코드에서 getGradeForStudent는 시험을 치르는 학생에게 할당된 성적을 반환합니다. 하지만 학생이 아직 시험을 치르지 않았을 가능성도 있는데, 이 경우에는 성적이 없을 것입니다. 따라서 getGradeForStudent는 Grade 객체 대신에 Optional<Grade> 객체를 반환합니다.
+
+```java
+// maybeGrade는 Grade를 가지고 있을 수도 아닐 수도 있습니다.
+Optional<Grade> maybeGrade = getGradeForStudent[StudentNumber];
+//점수가 없는 경우에는 "Unassgned"를 반환합니다.
+String grade = maybeGrade
+    .map(Grade :: toString)
+    .orElse("Unassigned");
+System.out.println(grade);
+```
+
+null 값을 가진 변수를 출력하면 오류가 발생하므로, Optional 타입은 먼저 grade의 toString 메소드를 호출하여 등급 분자열을 가져가려고 시도할 것입니다. 값이 없는 경우에는 orElse 메소드의 값이 대신 반환될 것입니다.
+
