@@ -223,4 +223,204 @@ public class MyActivity extends Activity implements View.OnClickListener {
 
 한 개의 옵저버 객체를 여러 주제 객체에 등록할 수도 있을 것입니다. GUI 프로그래밍을 하면 이런 상황이 빈번하게 발생합니다.
 
+예를 들어, 아래 코드처럼 로그인 버튼과 로그아웃 버튼에 동일한 OnClickListener 객체를 등록할 수 있습니다.
 
+```java
+public class MyActivity extends Activity implements View.OnClickListener {
+
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
+        ...
+        // 두 개의 버튼에 동일한 onClickListener 객체 등록
+        Button loginButton = getViewById(R.id.main_login);
+        loginButton.setOnClickListener(this);
+        Button logoutButton = (Button) findViewById(R.id.main_logoutbtn);
+        logoutButton.setOnClickListener(this);
+    }
+
+    @Override
+    public void onClick(View v) { // OnClickListener의 메서드
+        
+        if (v.getId() == R.id.main_loginbtn) {
+            login(id, password);    
+        } else if (v.getId() == R.id.main_logoutbtn) {
+            logout();
+        }
+    }
+}
+```
+
+한 옵저버 객체를 여러 주제 객체에 등록하면, 옵저버 객체에서 각 주제 객체를 구분할 수 있는 방법이 필요합니다.
+위 코드에서는 옵저버 객체의 메서드인 onClick() 메서드에서 주제 객체인 Button 객체를 구분하기 위해 ID 값을 사용하였습니다. ID 값 외에 아래 코드처럼 객체 레퍼런스를 사용할 수도 있을 것입니다.
+
+```java
+@Override
+public void onClick(View v) { // OnClickListener 메서드
+    if (v == loginButton) {
+        login(id, password);
+    } else if (v == logoutButton) {
+        logout();
+    }
+}
+```
+
+앞서 statusChecker 예제나 안드로이드 예제는 모두 주제 객체를 위한 추상 타입을 제공하고 있습니다. 예를 들어, StatusChecker는 상위 타입인 StatusSubject 추상 클래스가 존재하고, 안드로이드의 Button 클래스는 상위 타입인 View가 존재합니다. StatusSubject 클래스와 View 클래스는 모두 옵저버 객체를 관리하기 위한 기능을 제공한다는 공통점이 있습니다.
+
+```java
+// StatusChecker 클래스
+public void add(StatusObserver observer) { ... }
+
+// view 클래스
+public void setOnClickListener(OnClickListener o) { ... }
+```
+한 주제에 대한 다양한 구현 클래스가 존재한다면, 위 코드처럼 옵저버 객체 관리 및 통지 기능을 제공하는 추상 클래스를 제공함으로써 불필요하게 동일한 코드가 여러 주제 클래스에서 중복되는 것을 방지할 수 있을 것입니다. 하지만 해당 주제 클래스가 한개뿐이라면 옵저버 관리를 위한 추상 클래스를 따로 만들 필요는 없을 것 입니다.
+
+## 옵저버 패턴 구현의 고려 사항
+옵저버 패턴을 구현할 때에는 다음 내용을 고려해야 합니다
+
+- 주제 객체의 통지 기능 실행 주체
+- 옵저버 인터페이스의 분리
+- 통지 시점에서의 주제 객체 상태
+- 옵저버 객체의 실행 제약 조건
+
+옵저버 패턴을 구현할 때에 고려할 첫 번째 사항은 옵저버에 통지하는 시점을 결정하는 주체가 누가 되느냐에 대한 것입니다. 앞서 StatusChecker 예에서는 등록된 옵저버에 통지하는 주체가 StatusChecker 클래스였습니다.
+
+```java
+public class StatusChecker extends StatusSubject {
+
+    public void check() {
+        Status status = loadStatus();
+
+        if (status.isNotNormal()) {
+            super.notifyStatus(status); // StatusChecker가 옵저버에 대한 통지 요청
+        }
+    }
+}
+```
+
+그런데, 필요에 따라 StatusChecker를 사용하는 코드에서 통지 기능을 수행할 수도 있을것입니다. 예를 들어, 여러 StatusChecker 객체로부터 상태 정보를 읽어와 이들이 모두 비정상인 경우에만 통지를 하고 싶다고 해봅시다.
+
+이 경우 아래 코드에서 보는 것처럼 StatusChecker 객체를 사용하는 코드에서 통지 기능을 실행할 수 있을 것입니다.
+
+```java
+StatusChecker checker1 = ...;
+StatusChecker checker2 = ...;
+
+checker1.check();
+checker2.check();
+
+if (checker1.isLastStatusFault() && checker2.isLastStatusFault()) {
+    checker1.notifyStatus();
+    checker2.notifyStatus();
+}
+```
+
+Button처럼 주제 객체의 상태가 바뀔 때마다 옵저버에게 통지를 해 주어야 한다면, 주제 객체에서 직접 통지 기능을 실행하는 것이 구현에 유리합니다. 왜냐면, 주제 객체를 사용하는 코드에서 통지 기능을 실행한다면 상태를 변경하는 모든 코드에서 통지 기능을 함께 호출해 주어야 하는데, 이런 방식은 통지 기능을 호출하지 않는 등 개발자의 실수를 유발할 수 있기 때문입니다.
+
+반대로, 한 개 이상의 주제 객체의 연속적인 상태 변경 이후에 옵저버에게 통지를 해야 한다면, 주제 객체가 아닌 주제 객체의 상태를 변경하는 코드에서 통지 기능을 실행해 주도록 구현하는 것이 통지 시점을 관리하기가 수월합니다.
+
+옵저버 패턴을 구현할 때, 두 번째로 고려할 점은 옵저버의 인터페이스 개수에 대한 것입니다.
+예를 들어, GUI 컴포넌트들은 마우스 클릭 이벤트, 터치 이벤트, 드래그 이벤트 등 다양한 이벤트를 제공합니다. 이렇게 한 주제 객체가 통지할 수 있는 상태 변경 내역의 종류가 다양한 경우에는 각 종류 별로 옵저버 인터페이스를 분리해서 구현하는 것이 좋습니다. 모든 종류의 상태 변경을 하나의 옵저버 인터페이스로 처리할 경우, 옵저버 인터페이스는 다음과 같이 거대해 질 것입니다.
+
+```java
+public interface EventObserver {
+    public void onClick(View v);
+    public void onScroll(View v);
+    public void onTouch(View v);
+    ...
+}
+```
+
+위 코드처럼 모든 종류의 상태 변화를 수신하는 옵저버 인터페이스가 존재할 경우, 콘크리트 옵저버 클래스는 모든 메서드를 구현해 주어야 합니다. 실제로 콘크리트 옵저버 클래스에서 구현할(관심 있는) 메서드가 onClick()뿐이라 하더라도 아래 코드처럼 나머지 메서드의 구현을 만들어 주어야 합니다.(즉, 불필요한 코드를 만들어야 합니다.)
+
+```java
+public class OnlyClickObserver implements EventObserver {
+
+    public void onClick(View v) {
+        ...// 이벤트 처리 코드
+    }
+
+    public void onScroll(View view) { /* 빈 구현 */}
+    public void onTouch(View view) { /* 빈 구현 */}
+    ... // 다른 메서드의 빈 구현
+}
+```
+
+주제 객체 입장에서도 각 상태마다 변경의 이유가 다르기 때문에, 이들을 한 개의 옵저버 인터페이스로 관리하는 것은 향후에 변경을 어렵게 만드는 요인이 될 수 있습니다. 옵저버 타입이 한 개일 경우, 클릭, 스크롤, 터치 이벤트를 통지하는 코드가 서로 강하게 연결될 가능성이 높아지는데, 이 경우 옵저버 목록을 관리하고 옵저버 이벤트를 통지하는 코드의 복잡도가 증가하게 되며, 이는 곧 기존 이벤트를 제거하거나 새로운 종류의 이벤트 추가를 어렵게 만드는 원인이 될 수 있습니다.
+
+옵저버 패턴을 구현할 때 주의해야 할 세 번째 사항은 통지 시점에서 주제 객체의 상태에 결함이 없어야 한다는 것입니다.
+
+예를 들어, 한 주제 클래스의 코드를 아래와 같이 구현했다고 합시다.
+
+```java
+public class AnySubject extends SomeSubject {
+
+    @Override
+    public void changeState(int newValue) {
+        // 아래 코드가 실행되기 전에 옵저버가 상태를 조회
+        if (isStateSome()) {
+            state += newValue;
+        }
+    }
+}
+```
+
+이 코드에서 changeState() 메서드는 상위 클래스에 정의된 changeState() 메서드를 호출합니다. 그런데, 상위 타입의 changeState() 메서드에서 옵저버에 통지를 하게 되면 어떻게 될까요? 이 경우 super.changeState() 이후의 코드를 실행하기 전에 옵저버 객체가 AnySubject의 상태 값을 조회하게 됩니다. 그런데 AnySubject 클래스는 super.changeState() 코드를 실행한 이후에 다시 상태를 변경하게 되므로, 결과적으로 옵저버 객체는 완전하지 못한 상태 값을 조회하게 되는 것입니다.
+
+옵저버 객체가 올바르지 않는 상태 값을 사용하게 되는 문제가 발생하지 않도록 만드는 방법 중의 하나는 상태 변경과 통지 기능에 템플릿 메서드 패턴을 적용하는 것입니다. 아래 코드는 템플릿 메서드 패턴을 적용한 예를 보여주고 있습니다.
+
+```java
+// 상위 클래스
+public class SomeSubject {
+
+    // 템플릿 메서드로 구현
+    public void changeState(int newState) {
+        internalChangeState(newState);
+        notifyObserver();
+    }
+
+    protected void internalChangeState(int newState) {
+        ...
+    }
+}
+
+
+// 하위 클래스
+public class AnySubject extends SomeSubject {
+    // internalChangeState() 메서드 실행 이후에, 옵저버에 통지
+    @Override
+    public void internalChangeState(int newValue) {
+        super.internalChangeState(newValue);
+        if(isStateSome()) {
+            state += newValue;
+        }
+    }
+}
+```
+
+위 코드에서 상위 클래스의 changeState() 메서드는 internalChangeState() 메서드를 호출한 뒤에 notifyObserver() 메서드를 호출해서 옵저버에게 상태 변화를 통지하고 있습니다.
+따라서 AnySubject 클래스의 internalChangeState() 메서드에서 상태 변화를 마무리한 다음에 옵저버 객체가 상태 값을 접근하게 되므로, 옵저버는 완전한  상태 값을 사용할 수 있게 됩니다.
+
+옵저버 패턴을 구현할 때 마지막으로 주의해야할 사항은 옵저버 객체의 실행에 대한 제약 규칙을 정해야 한다는 것입니다.
+
+예를 들어, 주제 객체가 옵저버에 통지하기 위해 사용되는 메서드를 아래와 가팅 구현했다고 합시다.
+
+```java
+public void notifyToObserver() {
+    for(StatusObserver o: observers) {
+        o.onStatusChange();
+    }
+}
+
+public void changeState(int newState) {
+    internalChangeState(newState);
+    notifyToObserver();
+}
+```
+
+만약 10개의 옵저버 객체가 있고, 각 옵저버 객체의 onStatusChange() 메서드마다 실행 시간이 십 분 이상 걸린다면 어떻게 될까요? 이 경우, changeState() 메서드를 호출한 코드는 모든 옵저버 객체의 onStatusChange() 메서드 실행이 종료될 때까지 100분이 이상 기다려야 한다. 또는 한 개의 옵저버로 인해 다른 옵저버의 실행이 지연되는 상황이 발생할 수도 있다.
+
+따라서 옵저버 인터페이스를 정의할 때에는 옵저버 메서드의 실행 제한에 대한 명확한 기준이 필요합니다. 예를 들어,StatusObserver.onStatusChange() 메서드는 수 초 이내에 응답해야 하고 긴 작업을 수행해야 할 경우 별도 쓰레드로 실행해야 한다는 등의 제약 조건이 필요합니다. 안드로이드의 경우 사용자 이벤트에 대해 5초 이상 프로그램이 응답하지 않으면, ANR 대화 상자를 띄어 프로그램 종료 여부를 확인하는데, 이는 사용자 이벤트를 처리하는 코드는 5초 이내에 응답을 처리해야 한다는 기준을 제시하고 있는 것입니다.
+
+이외에 생각해 볼만한 고려사항들이 있습니다. 예를 들어, 옵저버 객체에서 주제 객체의 상태를 다시 변경하면 어떻게 구현할 것인가에 대한 문제나 옵저버 자체를 비동기로 실행하는 문제 등을 생각해 볼 수 있습니다. 이런 문제 주어진 상황에 따라 대답이 달라질 수 있으므로, 실제 옵저버 패턴을 적용할 때 한 번 고민해 보기 바랍니다.
