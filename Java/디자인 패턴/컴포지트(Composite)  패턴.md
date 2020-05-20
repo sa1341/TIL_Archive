@@ -34,3 +34,44 @@ public class PowerController {
 
 - 컴포넌트 그룹을 관리합니다.
 - 컴포지트에 기능 실행을 요청하면, 컴포지트는 포함하고 있는 컴포넌트들에게 기능 실행 요청을 위임합니다.
+
+위 그림에서 DeviceGroup 클래스가 컴포지트에 해당하며 아래처럼 두 개의 책임을 구현할 수 있습니다.
+
+```java
+public class DeviceGroup implements Device {
+    private List<Device> devices = new ArrayList<Device>)();
+
+    public void addDevice(Device d) {
+        devices.add(d);
+    }
+
+    public void removeDevice(Device d) {
+        devices.remove(d);
+    }
+
+    public void turnOn() {
+        for (Device device: devices) {
+            device.turnOn(); // 관리하는 Device 객체들에게 실행 위임
+        }
+    }
+
+    public void turnOff() {
+        for (Device device: devices) {
+            device.turnOff() // 관리하는 Device 객체들에게 실행 위임
+        }
+    }
+}
+```
+
+위 코드에서 addDevice() 메서드와 removeDevice() 메서드는 DeviceGroup이 관리할 Device 객체들의 목록을 관리합니다. turnOn() 메서드와 turnOff() 메서드는 DeviceGroup이 관리하고 있는 Device 객체들에게 기능 실행을 위임합니다. 이는, 아래 코드처럼 DeviceGroup 객체에 Device  객체를 등록한 뒤에 DeviceGroup 객체의 turnOn() 메서드를 호출하면, 등록되어 있는 모든 Device 객체의 turnOn() 메서드가 호출된다는 것을 뜻합니다.
+
+```java
+Device device1 = ...;
+Device device2 = ...;
+DeviceGroup group = new DeviceGroup();
+group.addDevice(device1);
+group.addDevice(device2);
+
+group.turnOn(); // device1과 device2의 turnOn() 실행
+```
+
