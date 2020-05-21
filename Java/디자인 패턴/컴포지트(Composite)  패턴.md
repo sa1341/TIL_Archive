@@ -74,4 +74,20 @@ group.addDevice(device2);
 
 group.turnOn(); // device1과 device2의 turnOn() 실행
 ```
+이제, DeviceGroup 클래스는 Device 타입이 되므로, 전원 제어 기능을 제공하는 PowerController 클래스는 Device 타입과 DeviceGroup 타입을 구분할 필요 없이 다음과 같이 Device 타입만을 이용해서 전원 관리를 할 수 있게 됩니다. 즉, 전체냐 부분이냐에 상관 없이 클라이언트는 단일 인터페이스 기능을 실행할 수 있는 장점이 생깁니다.
+
+
+```java
+public class PowerController {
+
+    public void turnOn(Long deviceId) {
+        //device의 실제 타입이 DeviceGroup인지 여부에 상관없이 동작
+        Device device = findDeviceById(Long deviceId);
+        device.turnOn();
+    }
+}
+```
+
+컴포지트 패턴을 사용할 때의 또 다른 장점은 컴포지트 자체도 컴포넌트이기 때문에, 컴포지트에 다른 컴포지트를 등록할 수 있다는 것입니다. 따라서 아래 코드처럼 각 층의 Light 객체를 모은 DeviceGroup 객체를 생성하고 다시 각 층 별로 생성된 DeviceGroup 객체를 모아서 하나의 DeviceGroup 객체에 등록하면, 전 층의 Light 객체를 켜거나 끄는 기능을 구현할 수 있게 됩니다.
+
 
