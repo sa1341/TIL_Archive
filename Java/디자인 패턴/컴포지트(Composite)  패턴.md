@@ -90,4 +90,17 @@ public class PowerController {
 
 컴포지트 패턴을 사용할 때의 또 다른 장점은 컴포지트 자체도 컴포넌트이기 때문에, 컴포지트에 다른 컴포지트를 등록할 수 있다는 것입니다. 따라서 아래 코드처럼 각 층의 Light 객체를 모은 DeviceGroup 객체를 생성하고 다시 각 층 별로 생성된 DeviceGroup 객체를 모아서 하나의 DeviceGroup 객체에 등록하면, 전 층의 Light 객체를 켜거나 끄는 기능을 구현할 수 있게 됩니다.
 
+```java
+// 각 층의 Light 객체를 모은 그룹 생성
+DeviceGroup firstFloorLightGroup = ...; // 1층의 모든 Light를 포함
+DeviceGroup secondFloorLightGroup = ...; // 2층의 모든 Light를 포함
+...
 
+// 각 층의 DeviceGroup 객체를 하나의 DeviceGroup에 다시 등록
+DeviceGroup allLightGroup = new DeviceGroup에 다시 등록
+allLightGroup.add(firstFloorLightGroup);
+allLightGroup.add(secondFloorLightGroup);
+...
+```
+
+allLightGroup.turnOff(); // 모든 층의 Light 객체의 turnOff() 실행
