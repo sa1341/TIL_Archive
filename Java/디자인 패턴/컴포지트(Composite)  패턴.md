@@ -101,6 +101,39 @@ DeviceGroup allLightGroup = new DeviceGroup에 다시 등록
 allLightGroup.add(firstFloorLightGroup);
 allLightGroup.add(secondFloorLightGroup);
 ...
-```
 
 allLightGroup.turnOff(); // 모든 층의 Light 객체의 turnOff() 실행
+```
+
+## 컴포지트 패턴 구현의 고려 사항
+컴포지트 패턴을 구현할 때 고려할 점은 컴포넌트를 관리하는 인터페이스를 어디서 구현할지에 대한 여부입니다. 컴포지트 패턴의 장점 중 하나는 클라이언트가 컴포지트와 컴포넌트를 구분하지 않고 컴포넌트 인터페이스만으로 프로그래밍 할 수 있게 돕는다는 점인데, 앞서 예제에서는 컴포지트인 DeviceGroup에 인터페이스를 정의했습니다.따라서 Device 그룹을 만들어야 하는 코드는 DeviceGroup 타입에 직접 접근해야 하는 상황이 발생합니다.
+
+Device 타입에 컴포넌트를 관리하는 인터페이스를 추가하면, 클라이언트 입장에서 DeviceGroup 타입을 사용하지 않고도 그룹을 생성할 수 있게 됩니다. 예를 들어, 다음과 같이 Device 타입만 사용하는 것이 가능해집니다.(DeviceGroup 객체 자체를 생성하는 코드에서만 DeviceGroup 타입을 사용하게 됩니다.)
+
+```java
+public void addDeviceTo(Device device, Integer toDeviceId) {
+    Device composite = findDevice(toDeviceId);
+    composite.addDevice(device);
+}
+```
+
+Device 타입에 컴포넌트를 관리하는 addDevice() 메서드와 removeDevice() 메서드가 정의되어 있을 경우, Light 클래스나 Aircon 클래스처럼 컴포지트가 아닌 클래스에서 이 두 기능이 정상적으로 동작하면 안됩니다. 예를 들어, Light 객체에 addDevice() 메서드를 이용해서 다른 객체를 추가하는 것은 논리적으로 말이 안됩니다. 이런 상황이 발생하지 않도록 하기 위해 Device 타입에 이들 기능에 익셉션을 발생시키는 기본 구현을 추가하고, DeviceGroup 클래스에서 알맞게 재정의하도록 구현할 수 있을 것입니다.
+
+```java
+// Device에 addDevice()와 removeDevice()에 대한 기본 기능 구현
+public abstract class Device {
+    public void addDevice(Device d) {
+        throw new CanNotAddException("추가 할 수 없음");
+    }
+    
+    public void removeDevice(Device d) {
+        // 아무 것도 하지 않음
+    }
+
+    public abstract void turnOn();
+    public abstract void turnOff();
+}
+```
+
+
+
