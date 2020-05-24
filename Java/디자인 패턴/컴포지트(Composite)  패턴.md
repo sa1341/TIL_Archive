@@ -135,5 +135,88 @@ public abstract class Device {
 }
 ```
 
+```java
+// GroupDevice에서 알맞게 재정의
+public class GroupDevice extends Device {
+    @Override
+    public void addDevice(Device d) {
+        device.add(d);
+    }
+
+    @Override
+    public void removeDevice(Device d) {
+        devices.remove(d);
+    }
+    ...
+}
+```
+
+Device 타입의 addDevice() 메서드는 익셉션을 발생시키므로 이제 아래 코드처럼 익셉션을 이용해서 컴포지트가 아닌 객체에 컴포넌트를 추가하지 못하는 상황을 확인할 수 있습니다.
+
+```java
+public void addDeviceTo(Device device, Integer toDeviceId) {
+    Device composite = findDevice(toDeviceId);
+    try {
+        composite.addDevice(device);
+    } catch(CanNotAddException ex) {
+        ... // 추가할 수 없는 경우의 처리
+    }
+}
+```
+
+익셉션을 발생시키는 방법보다 조금 더 나은 방법이 있다면, 컴포넌트를 추가할 수 있는지의 여부를 판단해 주는 기능을 Device 타입에 정의하는 것입니다.
+
+예를 들어, 다음과 같이 Device 타입에 canContain() 메서드를 추가하는 것입니다.
+
+```java
+// Device에 canContain() 추가
+public abstract class Device {
+    ...
+    public boolean canContain(Device device) {
+        return false;
+    }
+}
+```
+
+```java
+// GroupDevice에서 알맞게 재정의
+public class GroupDevice extends Device {
+    ...
+    @Override
+    public void canContain(Device d) {
+        return true;
+    }
+}
+```
+
+canContain() 메서드는 파라미터로 전달받는 Device 객체를 추가할 수 있는지 여부를 판단하는 책임을 가지므로, 특정 Device 객체에 다른 Device 객체를 추가할 때에는 canContain() 메서드를 이용해서 추가할 수 있는지의 여부를 확인한 뒤에 추가 기능을 실행할 수 있습니다.
+
+```java
+public void addDeviceTo(Device device, Integer toDeviceId) {
+    Device composite =  findDevice(toDeviceId);
+    if (composite.canContain(device)) {
+        composite.addDevice(device);
+        return ;
+    }
+    ... // 추가할 수 없는 경우의 처리
+}
+```
+
+canContain() 메서드는 객체 등록 여부뿐만 아니라 컴포지트에서 포함할 객체를 제한할 때에도 사용할 수 있습니다.
+
+예를 들어, Aircon 객체만 포함하는 컴포지트 클래스를 만들고 싶다면, 다음과 같이 canContain() 메서드를 구현해 주면 됩니다.
+
+```java
+public class OnlyAirconContainingGroup extends GroupDevice {
+    @Override
+    public boolean canContain(Device device) {
+        return (device intancof Aircon);
+    }
+}
+```
+
+
+
+
 
 
