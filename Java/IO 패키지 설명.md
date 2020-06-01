@@ -67,3 +67,36 @@ InputStream을 더 이상 사용하지 않을 경우에는 close() 메소드를 
 ```java
 is.close();
 ```
+## OutputStream
+OutputStream은 바이트 기반 출력 스트림의 최상위 클래스로 추상 클래스입니다. 모든 바이트 기반 출력 스트림 클래스는 이 클래스를 상속받아서 만들어집니다. 다음과 같이 FileOutputStream, PrintStream, BufferedOutputStream, DataOutputStream 클래스는 모두 OutputStream 클래스를 상속하고 있습니다.
+
+### write(int b) 메소드
+
+write(int b) 메소드는 매개 변수로 주어진 int 값에서 끝에 있는 1바이트만 출력 스트림으로 보냅니다. 매개 변수가 int 타입이므로 4바이트 모두를 보내는 것으로 오해할 수 있습니다.
+
+```java
+OutputStream os = new FileOutputStream("C:/test.txt");
+byte[] data = "ABC".getBytes();
+for(int i = 0; i <data.length; i++) {
+    os.write(data[i]); //"A", "B", "C"를 하나씩 출력
+}
+```
+
+### write(byte[] b) 메소드
+write(byte[] b)는 매개값으로 주어진 바이트 배열의 모든 바이트를 출력 스트림으로 보냅니다.
+
+```java
+OutputStream os = new FileOutputStream("C:/test.txt");
+byte[] data = "ABC".getBytes();
+os.write(data); //"ABC" 모두 출력
+```
+
+
+### write(byte[] b, int off, int len) 메소드
+write(byte[] b, int off, int len)은 b[off] 부터 len 개의 바이트를 출력 스트림으로 보냅니다.
+
+```java
+OutputStream os = new FileOutputStream("C:/test.txt");
+byte[] data = "ABC".getBytes();
+os.write(data, 1, 2); // "BC"만 출력
+```
