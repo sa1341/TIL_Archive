@@ -100,3 +100,39 @@ OutputStream os = new FileOutputStream("C:/test.txt");
 byte[] data = "ABC".getBytes();
 os.write(data, 1, 2); // "BC"만 출력
 ```
+
+### flush()와 close() 메소드
+
+출력 스트림은 내부에 작은 버퍼(buffer)가 있어서 데이터가 출력되기 전에 버퍼에 쌓여있다가 순서대로 출력됩니다. flush() 메소드는 버퍼에 잔류하고 있는 데이터를 모두 출력시키고 버퍼를 비우는 역할을 합니다. 프로그램에서 더 이상 출력할 데이터가 없다면 flush() 메소드를 마지막으로 호출하여 버퍼에 잔류하는 모든 데이터가 출력되도록 해야 합니다. OuputStream을 더 이상 사용하지 않을 경우에는 close() 메소드를 호출해서 OutputStream에서 사용했던 시스템 자원을 풀어줍니다.
+
+```java
+OutputStream os = new FileOutputStream("C:/test.txt");
+byte[] data = "ABC".getBytes();
+os.write(data);
+os.flush();
+os.close();
+```
+
+## Reader
+Reader는 문자 기반 입력 스트림의 최상위 클래스로 추상 클래스입니다. 모든 문자 기반 입력 스트림은 이 클래스를 상속받아서 만들어집니다. 대표적으로 FileReader, InputStreamReader, BufferedReader 클래스가 있고, 이들 모두 Reader 클래스를 상속하고 있습니다.
+
+
+### read() 메소드
+read() 메소드는 입력 스트림으로부터 한 개의 문자(2바이트)를 읽고 4바이트 int 타입으로 리턴합니다. 따라서 리턴된 4바이트 중 끝에 있는 2바이트에 문자가 들어있습니다. 예를 들어 입력 스트림에서 2개의 문자 (총 4바이트)가 들어온다면 다음과 같이 read() 메소드로 한 문자씩 두 번 읽을 수 있습니다.
+
+read() 메소드가 리턴한 int 값을 char 타입으로 변환하면 읽은 문자를 얻을 수 있습니다.
+
+```java
+char charData = (char) read();
+```
+
+더 이상 입력 스트림으로부터 문자를 읽을 수 없다면 read() 메소드는 -1을 리턴하는데 이것을 이용하면 읽을 수 있는 마지막 문자까지 루프를 돌며 한 문자씩 읽을 수 있습니다.
+
+```java
+Reader reader = new FileReader("C:/test.txt");
+int readData;
+
+while ((readData=reader.read() != -1)) {
+    char charData = (char) readData;
+}
+```
