@@ -143,4 +143,35 @@ read(char[] cbuf) 메소드는 입력 스트림으로부터 매개값으로 주�
 
 입력 스트림으로부터 100개의 문자가 들어온다면 read() 메소드는 100번을 루핑해서 읽어들어야 합니다. 그러나 read(char[] cbuf) 메소드는 한번 읽을 때 주어진 배열 길이만큼 읽기 때문에 루핑 횟수가 현저히 줄어듭니다. 그러므로 많은 양의 문자를 읽을 때는 read(char[] cbuf) 메소드를 사용하는 것이 좋습니다.
 
+## Wrtier
+Writer는 문자 기반 출력 스트림의 최상위 클래스로 추상 클래스 입니다. 모든 문자 기반 출력 스트림 클래스는 이 클래스를 상속받아서 만들어집니다. 다음과 같이 FileWriter, BufferedWriter, PrintWriter, OutputStreamWriter 클래스는 모두 Writer 클래스를 상속하고 있습니다.
 
+Writer 클래스에는 모든 문자 기반 출력 스트림이 기본적으로 가져야 할 메소드가 정의되어 있습니다.
+Writer 클래스의 주요 메소드는 대표적으로 아래와 같은 메소드가 존재합니다.
+
+### write(int c)  메소드
+write(int c) 메소드는 매개 변수로 주어진 int 값에서 끝에 있는 2바이트(한개의 문자)만 출력 스트림으로 보냅니다. 매개 변수가 int 타입이므로 4바이트 모두를 보내는 것으로 오해할 수 있습니다.
+
+```java
+Writer writer = new FileWriter("C:/test.txt");
+char[] data = "홍길동".toCharArray();
+for(int i = 0; i < data.length; i++) {
+    writer.write(data[i]); // "홍", "길", "동"을 하나씩 출력
+}
+```
+
+### write(char[] cbuf) 메소드
+write(char[] cbuf) 메소드는 매개값으로 주어진 char[] 배열의 모든 문자를 출력 스트림으로 보냅니다.
+
+```java
+Writer writer = new FileWriter("C:/test.txt");
+char[] data = "홍길동".toCharArray();
+writer.write(data); //"홍길동" 모두 출력
+```
+
+
+### write(char[] c, int off, int len) 메소드
+write(char[] c, int off, int len)은 c[off] 부터 len개의 문자를 출력스트림으로 보냅니다.
+마찬가지로 write(String str) 메소드가 있는데 문자열 전체를 출력 스트림으로 보냅니다.
+
+문자 출력 스트림은 내부에 작은 버퍼(buffer)가 있어서 데이터가 출력되기 전에 버퍼에 쌓여있다가 순서대로 출력됩니다. flush() 메소드는 버퍼에 잔류하고 있는 데이터를 모두 출력시키고 버퍼를 비우는 역할을 합니다. 프로그램에서 더 이상 출력할 문자가 없다면 flush() 메소드를 마지막으로 호출하여 모든 문자가 출력되도록 해야 합니다. 마지막으로 Writer를 더 이상 사용하지 않을 경우에는 close() 메소드를 호출해서 Writer에서 사용했던 시스템 자원을 풀어줍니다.
