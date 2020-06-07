@@ -206,3 +206,59 @@ char inputChar = (char) is.read();
 ```java
 char inputChar = (char) 97;
 ``` 
+
+
+다음은 현금 자동 입출금기인 ATM(Automatic Teller Machine)과 비슷하게 사용자에게 메뉴를 제공하고 사용자가 어떤 번호를 입력했는지 알아내는 예제입니다.
+
+```java
+import java.io.InputStream;
+
+public class SystemInExample1 {
+    public static void main(String[] args) throws Exception {
+        System.out.println("== 메뉴 ==");
+        System.out.println("1. 예금 조회");
+        System.out.println("2. 예금 출금");
+        System.out.println("3. 예금 입금");
+        System.out.println("4. 종료 하기");
+        System.out.print("메뉴를 선택하세요: ");
+
+        // 키보드 입력 스트림 얻기
+        InputStream is = System.in;
+        char inputChar = (char) is.read();
+        switch (inputChar) {
+            case '1':
+                System.out.println("예금 조회를 선택하셨습니다.");
+                break;
+
+            case '2':
+                System.out.println("예금 출금을 선택하셨습니다.");
+                break;
+
+            case '3':
+                System.out.println("예금 입금을 선택하셨습니다.");
+                break;
+
+            case '4':
+                System.out.println("종료 하기를 선택하셨습니다.");
+                break;
+        }
+    }
+}
+```
+
+InputStream의 read() 메소드는 1바이트만 읽기 때문에 1바이트의 아스키 코드로 표현되는 수자, 영어, 특수문자는 프로그램에서 잘 읽을 수 있지만, 한글과 같이 2바이트를 필요로하는 유니코드는 read() 메소드로 읽을 수 없습니다. 키보드로 입력된 한글을 얻기 위해서는 우선 read(byte[] b)나 read(byte[] b, int off, int len) 메소드로 전체 입력된 내용을 바이트 배열로 받고, 이 배열을 이용해서 string 객체를 생성하면 됩니다. read(byte[] b) 메소드를 사용하기 전에 우선 키보드에서 입력한 문자를 저장할 바이트 배열을 만들어야 합니다. 바이트 배열의 길이는 읽어야 할 바이트 수를 고려해서 적절히 주면 되는데, 영어 한 문자는 1바이트, 한글 한 문자는 2바이트를 차지하므로 최대 영문자 15자 또는 한글 7자를 저장하려면 아래와 같이 바이트 배열을 선언하면 됩니다.
+
+```java
+byte[] byteData = new byte[15];
+```
+
+다음과 같이 생성된 배열을 read(byte[] b) 메소드의 매개값으로 주면 키보드에서 입력한 문자를 저장할 수 있게 됩니다.
+
+```java
+byte[] byteData = new byte[15];
+// 읽은 바이트 수 리턴
+int readByteNo = System.in.read(byteData);
+```
+
+read(byte[] b) 메소드는 매개값으로 주어진 바이트 배열에 읽은 문자를 저장하고, 실제로 읽은 바이트 개수를 리턴합니다. 
+
