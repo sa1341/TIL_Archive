@@ -264,3 +264,27 @@ read(byte[] b) 메소드는 매개값으로 주어진 바이트 배열에 읽은
 
 프로그램에서 바이트 배열에 저장된 아스키 코드를 사용하려면 문자열로 변환해야 합니다. 변환할 문자열은 바이트 배열의 0번 인덱스에서 시작해서 읽은 바이트 수 -2 만큼입니다. 2를 빼는 이유는 Enter 키에 해당하는 마지막 두 바이트를 제외하기 위해서입니다. 바이트 배열을 문자열로 변환할 때는 다음과 같이 String 클래스의 생성자를 이용합니다.
 
+다음은 이름과 하고 싶은 말을 키보드로 입력받아서 다시 출력하는 예제입니다.
+
+```java
+public class SystemInExample2 {
+
+    public static void main(String[] args) throws Exception {
+
+        InputStream is = System.in;
+
+        byte[] datas = new byte[100];
+
+        System.out.print("이름: ");
+        int nameBytes = is.read(datas);
+        String name = new String(datas, 0, nameBytes-2);
+
+        System.out.print("하고 싶은말: ");
+        int commentBytes = is.read(datas);
+        String comment = new String(datas, 0, commentBytes-2);
+
+        System.out.println("입력한 이름: " + name);
+        System.out.println("입력만 하고 싶은말: " + comment);
+    }
+}
+```
