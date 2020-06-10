@@ -288,3 +288,20 @@ public class SystemInExample2 {
     }
 }
 ```
+
+## System.out 필드
+콘솔에서 입력된 데이터를 System.in으로 읽었다면, 반대로 콘솔로 데이터를 출력하기 위해서는 System 클래스의 out 정적 필드를 사용합니다. out은 PrintStream 타입의 필드입니다. PrintStream은 나중에 설명하기로 하고, 여기서는 PrintStream이 OutputStream의 하위 클래스이므로 out 필드를 OutputStream 타입으로 변환해서 사용할 수  있다는 것만 알면 됩니다.
+
+```java
+OutputStream os = System.out;
+```
+
+콘솔로 1개의 바이트를 출력하면 OutputStream의 write(int b) 메소드를 이용하면 됩니다. 이때 바이트 값은 아스키 코드인데, write() 메소드는 아스키 코드를 문자로 콘솔에 출력합니다. 예를 들어 아스키 코드 97번을 write(int b) 메소드로 출력하면 `a`가 출력됩니다.
+
+```java
+byte b = 97;
+os.write(b);
+os.flush();
+```
+
+OutputStream의 write(int b) 메소드는 1바이트만 보낼 수 있기 때문에 1바이트로 표현 가능한 숫자, 영어, 특수 문자는 출력이 가능하지만, 2바이트로 표현되는 한글은 출력할 수 없습니다.
