@@ -354,3 +354,6 @@ exists() 메소드의 리턴값이 false라면 createNewFile(), mkdir(), mkdirs(
 | File[] | <center>listFiles()</center> | 디렉토리에 포함된 파일 및 서브 디렉토리 목록 전부를 File 배열로 리턴 |
 | File[] | <center>listFiles(FileNameFilter filter)</center> | 디렉토리에 포함된 파일 및 서브 디렉토리 목록 중에 FileNameFilter에 맞는 것만 File 배열로 리턴 |
 
+
+다음은 C:/Temp 디렉토리에 Dir 디렉토리와 file1.txt, file2.txt, file3.txt 파일을 생성하고, Temp 디렉토리에 있는 파일 목록을 출력하는 예제입니다.
+
