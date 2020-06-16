@@ -356,4 +356,3 @@ exists() 메소드의 리턴값이 false라면 createNewFile(), mkdir(), mkdirs(
 
 
 다음은 C:/Temp 디렉토리에 Dir 디렉토리와 file1.txt, file2.txt, file3.txt 파일을 생성하고, Temp 디렉토리에 있는 파일 목록을 출력하는 예제입니다.
-
