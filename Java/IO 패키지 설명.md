@@ -356,3 +356,80 @@ exists() 메소드의 리턴값이 false라면 createNewFile(), mkdir(), mkdirs(
 
 
 다음은 C:/Temp 디렉토리에 Dir 디렉토리와 file1.txt, file2.txt, file3.txt 파일을 생성하고, Temp 디렉토리에 있는 파일 목록을 출력하는 예제입니다.
+
+```java
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class FileExample {
+    public static void main(String[] args) throws Exception {
+        File dir = new File("/Users/limjun-young/Temp/Dir");
+        File file1 = new File("/Users/limjun-young/Temp/file1.txt");
+        File file2 = new File("/Users/limjun-young/Temp/file2.txt");
+
+        if (!dir.exists()) {
+            dir.mkdir();
+        }
+
+        if (!file1.exists()) {
+            file1.createNewFile();
+        }
+
+        if (!file2.exists()) {
+            file2.createNewFile();
+        }
+        
+        File temp = new File("/Users/limjun-young/Temp");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd a HH:mm");
+        File[] contents = temp.listFiles();
+
+        System.out.println("날짜        시간       형태     크기     이름");
+        System.out.println("---------------------------------------------------");
+
+        for (File file : contents) {
+            System.out.print(sdf.format(new Date(file.lastModified())));
+            if (file.isDirectory()) {
+                System.out.print("\t<DIR>\t\t\t" + file.getName());
+            } else {
+                System.out.print("\t\t\t" + file.length() + "\t" + file.getName());
+            }
+            System.out.println();
+        }
+    }
+}
+```
+
+#### 실행 결과
+
+![image](https://user-images.githubusercontent.com/22395934/84907085-bc3be100-b0ed-11ea-829f-603cf0e8a457.png)
+
+## FileInputStream
+
+FileInputStream 클래스는 파일로부터 바이트 단위를 읽어들일때 사용하는 바이트 기반 입력 스트림입니다.바이트 단위로 읽기 때문에 그림, 오디오, 비디오, 텍스트 파일 등 모든 종류의 파일을 읽을 수 있습니다. 다음은 FileInputStream을 생성하는 두가지 방법을 보여줍니다.
+
+```java
+// 첫번째 방법
+FileInputStream fis = new FileInputStream("C:/Temp/image.gif");
+
+// 두번째 방법
+File file = new File("C:/Temp/image.gif");
+FileInputStream fis = new FileInputStream(file);
+```
+
+첫 번째 방법은 문자열로된 파일의 경로를 가지고 FileInputStream을 생성합니다. 만약 읽어야 할 파일이 File 객체로 이미 생성되어 있다면 두 번째 방법으로 좀 더 쉽게 FileInputStream을 생성할 수 있습니다. FileInputStream 객체가 생성될 때 파일과 직접 연결이 되는데, 만약 파일이 존재하지 않으면 FileNotFouException을 발생시키므로 try-catch문으로 예외 처리를 해야합니다.
+
+FileInputStream은 InputStream의 하위 클래스이기 때문에 사용 방법이 InputStream과 동일합니다. 한 바이트를 읽기 위해서 read() 메서드를 사용하거나, 읽은 바이트를 byte 배열에 저장하기 위해서 read(byte[] b) 또는 read(byte[] b, int off, int len) 메소드를 사용합니다. 전체 파일의 내용을 읽기 위해서는 이 메소드들을 반복 실행해서 -1이 나올 때까지 읽으면 됩니다. 파일의 내용을 모두 읽은 후에는 close() 메소드를 호출해서 파일을 닫아줍니다.
+
+```java
+FileInputStream fis = new FileInputStream("C:/Temp/image.gif");
+
+int readByteNo;
+byte[] readBytes = new byte[100];
+while ( readByteNo = fis.read(readBytes) != -1) {
+    // 읽은 바이트 배열(readBytes)을 처리
+} 
+fis.close();
+```
+
+
