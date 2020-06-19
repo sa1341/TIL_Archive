@@ -432,4 +432,22 @@ while ( readByteNo = fis.read(readBytes) != -1) {
 fis.close();
 ```
 
+다음은 FileInputStreamExample.java 소스 파일을 읽고 콘솔에 보여주는 예제 입니다.
 
+```java
+public class FileInputStreamExample {
+    public static void main(String[] args) {
+        try {
+            FileInputStream fis = new FileInputStream("/Users/Temp/FileInputStreamExample.java");
+
+            int data;
+            while (data = fis.read() != -1) {
+                System.out.write(data);
+            }
+            fis.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
