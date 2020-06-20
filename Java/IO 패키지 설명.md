@@ -451,3 +451,31 @@ public class FileInputStreamExample {
     }
 }
 ```
+## FileOutputStream
+
+FileOutputStream은 바이트 단위로 데이터를 파일에 저장할 때 사용하는 바이트 기반 출력 스트림입니다. 바이트 단위로 저장하기 때문에 그림, 오디오, 비디오, 텍스트 등 모든 종류의 데이터를 파일로 저장할 수 있습니다. 다음은 FileOutputStream을 생성하는 두 가지 방법을 보여줍니다. 첫 번째 방법은 파일의 경로를 가지고 FileOutputStream을 생성하지만, 저장할 파일이 File 객체로 이미 생성되어 있다면 두 번째 방법으로 좀 더 쉽게 FileOUtputStream을 생성할 수 있습니다.
+
+```java
+// 방법 1
+FileOutputStream fos = new FileOutputStream("C:/Temp/image.gif");
+
+// 방법 2
+File file = new File("C:/Temp/image.gif");
+FileOutputStream fos = new FileOutputStream(file);
+```
+주의할 점은 파일이 이미 존재할 경우, 데이터를 출력하면 파일을 덮어쓰게 되므로, 기존의 파일 내용은 사라지게 됩니다. 기존의 파일 내용 끝에 데이터를 추가할 경우에는 FileOutputStream 생성자의 두번 째 매개값을 true로 주면 됩니다.
+
+```java
+FileOutputStream fos = new FileOutputStream("C:/Temp/data.txt", true);
+FileOutputStream fos = new FileOutputStream(file, true);
+```
+
+FileOutputStream은 OuputStream의 하위 클래스이기 때문에 사용 방법이 OutputStream과 동일합니다. 한 바이트를 저장하기 위해서 write() 메소드를 사용하고 바이트 배열을 한 꺼번에 저장하기 위해서 write(byte[] b) 또는 write(byte[] b, int off, int len) 메소드를 사용합니다.
+
+```java
+FileOutputStream fos = new FileOutputStream("C:/Temp/image.gif");
+byte[] data = ...;
+fos.write(data);
+fos.flush();
+fos.close();
+```
