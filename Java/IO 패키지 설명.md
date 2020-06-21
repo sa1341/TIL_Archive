@@ -479,3 +479,42 @@ fos.write(data);
 fos.flush();
 fos.close();
 ```
+write() 메소드를 호출한 이후에 flush() 메소드로 출력 버퍼에 잔류하는 데이터를 완전히 출력하도록, close() 메소드를 호출해서 파일을 닫아줍니다. 다음은 원본 파일을 타겟 파일로 복사하는 예제입니다. 복사 프로그램의 원리는 원본 파일에서 읽은 바이트를 바로 타겟 파일로 저장하는 것이기 때문에 FileInputStream에서 읽은 바이트를 바로 FileOutputStream으로 저장하면 됩니다.
+
+```java
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+
+public class FileOutputStreamExample {
+    public static void main(String[] args) throws Exception {
+
+        String originalFileName = "/Users/limjun-young/Temp/test0622.txt";
+        String targetFileName = "/Users/limjun-young/Temp/test0622_output.txt";
+
+        FileInputStream fis = new FileInputStream(originalFileName);
+        FileOutputStream fos = new FileOutputStream(targetFileName);
+
+        int readByteNo;
+        byte[] readBytes = new byte[100];
+        while ( (readByteNo = fis.read(readBytes)) != -1) {
+            System.out.println("readByteNo: " +readByteNo);
+            fos.write(readBytes, 0, readByteNo);
+        }
+
+        fos.flush();
+        fos.close();
+        fis.close();
+
+        System.out.println("복사가 잘 되었습니다.");
+
+    }
+}
+```
+
+변수 readByteNo는 실제로 읽은 바이트 수가 저장될 변수이고, readBytes는 실제로 읽은 바이트가 저장되는 배열입니다. FileInputStream의 read(byte[] b) 메소드로 한 번에 100 바이트를 읽어 readBytes에 저장하고 100을 readByteNo에 저장합니다. 그리고 readByteNo가 -1이 아닌지를 검사합니다.
+
+이렇게 계속해서 루핑을 돌다가 마지막 루핑 시에는 100개보다 작은 바이트를 읽어 readBytes에 저장하고 바이트 수를 readByteNo에 저장합니다. 에를 들어 파일 사이즈가 520 바이트라면 while 문을 6번 루핑하는데 마지막 루핑 시에는 20 바이트만 읽어 readBytes에 저장하고 20을 readByteNo에 저장합니다. 
+
+
+
+
