@@ -515,6 +515,95 @@ public class FileOutputStreamExample {
 
 이렇게 계속해서 루핑을 돌다가 마지막 루핑 시에는 100개보다 작은 바이트를 읽어 readBytes에 저장하고 바이트 수를 readByteNo에 저장합니다. 에를 들어 파일 사이즈가 520 바이트라면 while 문을 6번 루핑하는데 마지막 루핑 시에는 20 바이트만 읽어 readBytes에 저장하고 20을 readByteNo에 저장합니다. 
 
+## FileReader
+FileReader 클래스는 텍스트 파일을 프로그램으로 읽어들일 때 사용하는 문자 기반 스트림입니다. 문자 단위로 읽기 때문에 텍스트가 아닌 그림, 오디오, 비디오 등의 파일은 읽을 수 없습니다. 다음은 FileReader를 생성하는 두 가지 방법을 보여줍니다. 첫 번째 방법은 전체 파일 경로를 가지고 FileReader를 생성하지만, 읽어야 할 파일이 File 객체로 이미 생성되어 있다면 두 번째 방법으로 좀 더 쉽게 FileReader를 생성할 수 있습니다.
 
+```java
+// 방법1
+FileReader fr = new FileReader("/Users/limjun-young/Temp/file.txt");
+
+// 방법2
+File file = new File("/Users/limjun-young/Temp/file.txt");
+FileReader fr = new FileReader(file);
+```
+
+FileReader 객체가 생성될 때 파일과 직접 연결이 되는데, 만약 파일이 존재하지 않으면 FileNotFoundException을 발생시키므로 try-catch 문으로 예외 처리를 해야합니다. FileReader는 Reader의 하위 클래스이기 때문에 사용 방법이 Reader와 동일합니다. 한 문자를 읽기 위해서 read() 메소드를 사용하거나, 읽은 문자를 char 배열에 저장하기 위해서 read(char[] cbuf)또는 read(char[] cbuf, int off, int len) 메소드를 사용합니다. 전체 파일의 내용을 읽기 위해서는 이 메소드를 반복 실행해서 -1이 나올때 까지 읽으면 됩니다.
+
+```java
+FileReader fr = new FileReader("/Users/limjun-young/Temp/file.txt");
+int readCharNo;
+char[] cbuf = new char[100];
+while ((readCharNo = fr.read(cbuf)) != -1 ) {
+    // 읽은 문자 배열(cbuf) 처리
+}
+fr.close();
+```
+파일의 내용을 모두 읽은 후에는 close() 메소드를 호출해서 파일을 닫아줍니다. 다음은 FileReader Example.java 소스 파일을 읽고 콘솔에 출력하는 예제입니다.
+
+```java
+public class FileReaderExample {
+    public static void main(String[] args) throws Exception {
+        FileReader fr = new FileReader("/Users/limjun-young/Temp/FileReaderExample.java");
+
+        int readCharNo;
+        char[] cbuf = new char[100];
+        while ((readCharNo=fr.read(cbuf)) != -1 ) {
+            String data = new String(cbuf, 0, read(CharNo);
+            System.out.println(data)l
+        }
+        fr.close();
+    }
+}
+```
+코드를 보면 cbuf 배열에 저장되어 있는 문자들을 연결해서 문자열(String 객체)로 생성하였습니다. String 생성자의 첫 번째 매개값에는 cbuf, 두 번째 매개값은 0 인덱스를, 세 번째 매개값은 읽은 문자 수를 지정했습니다.
+
+
+## FileWriter
+FileWriter는 텍스트 데이터를 파일에 저장할 때 사용하는 문자 기반 스트림입니다. 문자 단위로 저장하기 때문에 텍스트가 아닌 그림, 오디오, 비디오, 등의 데이터를 파일로 저장할 수 없습니다. 다음은 FileWriter를 생성하는 두 가지 방법을 보여줍니다. 첫 번째 방법은 전체 파일의 경로를 가지고 FileWriter을 생성하지만, 저장할 파일이 File 객체로 이미 생성되어 있다면 두 번째 방법으로 좀 더 쉽게 FileWriter를 생성할 수 있습니다.
+
+```java
+// 방법 1
+FileWriter fw = new FileWriter("/Users/limjun-young/Temp/file.txt");
+
+// 방법 2
+File file = new File("/Users/limjun-young/Temp/file.txt");
+FileWriter fw = new FileWriter(file);
+```
+
+위와 같이 FileWriter를 생성하면 지정된 파일이 이미 존재할 경우 그 파일을 덮어쓰게 되므로, 기존의 파일 내용 끝에 데이터를 추가할 경우에는 FileWriter 생성자에 두 번째 매개값으로 true를 주면 됩니다.
+
+```java
+FileWriter fw = new FileWriter("/Users/limjun-young/Temp/file.txt", true);
+FileWriter fw = new FileWriter(file, true);
+```
+
+FileWriter는 Writer 하위 클래스이기 때문에 사용 방법이 Writer와 동일합니다. 한 문자를 저장하기 위해서 write() 메소드를 사용하고 문자열을 저장하기 위해서 write(String str) 메소드를 사용합니다.
+
+```java
+FileWriter fw = new FileWriter("/Users/limjun-young/Temp/file.txt");
+String data = "저장할 문자열";
+fw.write(data);
+fw.flush();
+fw.close();
+```
+
+write() 메소드를 호출한 이후에 flush() 메소드로 출력 버퍼에 있는 데이터를 파일로 완전히 출력하도록 하고, close() 메소드를 호출해서 파일을 닫아줍니다. 다음 예제는 문자열 데이터를 `/Users/limjun-young/Temp.file.txt` 파일에 저장합니다.
+
+```java
+public class FileWriterExample {
+    public static void main(String[] args) throws Exception {
+        File file = new File("/Users/limjun-young/Temp/file.txt");
+        FileWriter fw = new FileWriter(file, true);
+        fw.write("FileWriter는 한글로 된 " + "\r\n");
+        fw.write("문자열을 바로 출력할 수 있다 " + "\r\n");
+        fw.flush();
+        System.out.println("파일에 저장되었습니다.");
+    }
+}
+```
+
+#### 실행 결과
+
+![image](https://user-images.githubusercontent.com/22395934/85298506-259d6480-b4df-11ea-9081-d95924c0bc4a.png)
 
 
