@@ -634,3 +634,82 @@ BufferedReader br = new BufferedReader(reader);
 
 ## 문자 변환 보조 스트림
 소스 스트림이 바이트 기반 스트림이면서 입출력 데이터가 문자라면 Reader, Writer로 변환해서 사용하는 것을 고려해야 합니다. 그 이유는 Reader와 Writer는 문자 단위로 입출력하기 때문에 바이트 기반 스트림보다는 편리하고, 문자셋의 종류를 지정할수 있기 때문에 다양한 문자를 입출력할 수 있습니다.
+
+## 객체의 입출력 보조 스트림
+자바는 메모리에 생성된 객체를 파일 또는 네트워크로 출력할 수가 있습니다. 객체는 문자가 아니기 때문에 바이트 기반 스트림으로 출력해야 합니다. 객체를 출력하기 위해서는 객체의 데이터(필드값)를 일렬로 늘어선 연속적인 바이트로 변경해야 하는데, 이것을 객체 직렬화라고 합니다. 반대로 파일에 저장되어 있거나 네트워크에서 전송된 객체를 읽을 수도 있는데, 입력스트림으로부터 읽어들인 연속적인 바이트를 객체로 복원하는 것을 역직렬화라고 합니다.
+
+## ObjectInputStream, ObjectOutputStream
+자바는 객체를 입출력 할 수 있는 두개의 보조 스트림인 ObjectInputStream과 ObjectOutputStream을 제공합니다. ObjectOutputSteeam은 바이트 출력 스트림과 연결되어 객체를 직렬화하는 역할을 하고, ObjectInputStream은 바이트 입력 스트림과 연결되어 객체로 역직렬화하는 역할을 합니다.
+
+ObjectInputStream과 ObjectOutputStream은 다른 보조 스트림과 마찬가지로 연결할 바이트 입출력 스트림을 생성자의 매개값으로 받습니다.
+
+```java
+ObjectInputStream ois = new ObjectInputStream(바이트입력스트림);
+ObjectOutputStream oos = new ObjectOuputStream(바이트출력스트림);
+```
+
+ObjectOutputStream으로 객체를 직렬화하기 위해서는 writeObject() 메소드를 사용합니다.
+
+```java
+oos.wirteObject(객체);
+```
+
+반대로 ObjectInputStream의 readObject() 메소드는 입력 스트림에서 읽은 바이트를 역직렬화해서 객체로 생성합니다. readObject() 메소드의 리턴 타입은 Object 타입이기 때문에 객체의 원래 타입으로 변환해야 합니다.
+
+```java
+객체타입 변수 = (객체타입) ois.readObject();
+```
+
+다음은 다양한 객체를 파일에 저장하고, 다시 파일로부터 읽어 객체로 복원하는 예제입니다. 복수의 객체를 저장할 경우, 출력된 객체 순서와 동일한 순서로 객체를 읽어야 합니다.
+
+```java
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
+public class StreamObjExam {
+    public static void main(String[] args) throws Exception {
+
+        FileOutputStream fos = new FileOutputStream("/Users/limjun-young/Temp/file1.txt");
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+
+        oos.writeObject(new Integer(10));
+        oos.writeObject(new Double(3.14));
+        oos.writeObject(new int[] { 1, 2, 3 });
+        oos.writeObject(new String("홍길동"));
+
+        oos.flush();
+        oos.close();
+        fos.close();
+
+        FileInputStream fis = new FileInputStream("/Users/limjun-young/Temp/file1.txt");
+        ObjectInputStream ois = new ObjectInputStream(fis);
+
+        Integer obj1 = (Integer) ois.readObject();
+        Double obj2 = (Double) ois.readObject();
+        int[] obj3 = (int[]) ois.readObject();
+        String obj4 = (String) ois.readObject();
+
+        ois.close();
+        fis.close();
+
+        System.out.println(obj1);
+        System.out.println(obj2);
+        System.out.println(obj3[0] + "," + obj3[1] + "," + obj3[2]);
+        System.out.println(obj4);
+
+    }
+}
+```
+
+## 직렬화가 가능한 클래스(Serializable)
+자바는 Serializable 인터페이스를 구현한 클래스만 직렬화할 수 있도록 제한하고 있씁니다. Serializable 인터페이스는 필드나 메소드가 없는 빈 인터페이스지만, 객체를 직렬화할 때 private 필드를 포함한 모든 필드를 바이트로 변환해도 좋다는 표시 역할을 합니다.
+
+```java
+public class XXX implements Serializable {}
+```
+
+객체를 직렬화하면 바이트로 변환되는 것은 필드들이고, 생성자 및 메소드는 직렬화에 포함되지 않습니다. 따라서 역직렬화 할때에는 필드의 값만 복원됩니다. 하지만 모든 필드가 직렬화 대상이 되는 것은 아닙니다. 필드 선언에 static 또는 transient가 붙어있을 경우에는 직렬화가 되지 않습니다.
+
+
