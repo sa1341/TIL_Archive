@@ -712,4 +712,82 @@ public class XXX implements Serializable {}
 
 객체를 직렬화하면 바이트로 변환되는 것은 필드들이고, 생성자 및 메소드는 직렬화에 포함되지 않습니다. 따라서 역직렬화 할때에는 필드의 값만 복원됩니다. 하지만 모든 필드가 직렬화 대상이 되는 것은 아닙니다. 필드 선언에 static 또는 transient가 붙어있을 경우에는 직렬화가 되지 않습니다.
 
+```java
+public class XXX implements Serializable {
+    public int field1;
+    protected int field2;
+    int field3;
+    private int field4;
+    public static int field5;
+    transient int field6;
+}
+```
 
+다음은 직렬화되는 필드와 그렇지 못한 필드가 어떤 것이 있는지 확인해 주는 예제입니다.
+
+```java
+public class ClassA implements Serializable {
+    int field1;
+    ClassB field2 = new ClassB();
+    static int field3;
+    transient int field4;
+}
+
+public class ClassB implements Serializable {
+    int field1;
+}
+```
+
+```java
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
+
+public class SerializableWriter {
+    public static void main(String[] args) throws Exception {
+        FileOutputStream fos = new FileOutputStream("/Users/limjun-young/Temp/file2.txt");
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+        ClassA classA = new ClassA();
+        classA.field1 = 1;
+        classA.field2.field1 = 2;
+        classA.field3 = 3;
+        classA.field4 = 4;
+        oos.writeObject(classA);
+        oos.flush();
+        oos.close();
+        fos.close();
+    }
+}
+```
+
+```java
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
+
+public class SerializableReader {
+    public static void main(String[] args) throws Exception {
+
+        FileInputStream fis = new FileInputStream("/Users/limjun-young/Temp/file2.txt");
+        ObjectInputStream ois = new ObjectInputStream(fis);
+
+        ClassA v=  (ClassA) ois.readObject();
+        System.out.println("field1: " + v.field1);
+        System.out.println("field2.field1: " + v.field2.field1);
+        System.out.println("field3: " + v.field3);
+        System.out.println("field4: " + v.field4);
+        
+    }
+}
+```
+
+먼저, SerializableWriter 클래스를 실행하면 ClassA 객체를 직렬화해서 file2.txt 파일에 저장합니다. 그리고 나서 SerializableReader 클래스를 실행하면 file2.txt 파일에 저장된 데이터를 읽고, ClassA 객체로 역직렬화합니다. 실행결과를 보면 field1과 field2는 값이 복원되는 것을 알 수 있으나, static 필드인 field3과 transient 필드인 field4는 값이 복원되지 않습니다. file2.txt 파일에는 field1과 field2의 데이터만 저장되어 있기 때문입니다.
+
+
+## SerialVersionUID 필드
+직렬화된 객체를 역직렬화할 때는 직렬화했을 때와 같은 클래스를 사용해야 합니다. 클래스 이름이 같더라도 클래스의 내용이 변경되면, 역직렬화는 실패하여 다음과 같은 예외가 발생합니다.
+
+```java
+java.io.InvalidClassException: XXX; local class incompatable: stream classdesc
+seriaVersionUID = -9130799490637378756, local class serialVersionUID = -1174725809595957294
+```
+
+위 예제에서 예외의 내용은 직렬화 할 때와 역직렬화할 때 사용된 클래스의 serialVersionUID가 다르다는 것입니다. serialVersionUID는 같은 클래스임을 알려주는 식별자 역할을 하는데, Serializable 인터페이스를 구현한 클래스를 컴파일하면 자동적으로 serialVersionUID 정적 필드가 추가됩니다. 문제는 클래스를 재컴파일하면 serialVersionUID의 값이 달라진다는 것입니다. 네트워크로 객체를 직렬화하여 전송하는 경우, 보내는 쪽과 받는 쪽이 모두 같은 serialVersionUID를 갖는 클래스를 가지고 있어야 하는데 한 쪽에서 클래스를 변경해서 재컴파일하면 다른 serialVersionUID를 가지게 되므로 역직렬화에 실패하게 됩니다.
