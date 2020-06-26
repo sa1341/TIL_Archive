@@ -791,3 +791,29 @@ seriaVersionUID = -9130799490637378756, local class serialVersionUID = -11747258
 ```
 
 위 예제에서 예외의 내용은 직렬화 할 때와 역직렬화할 때 사용된 클래스의 serialVersionUID가 다르다는 것입니다. serialVersionUID는 같은 클래스임을 알려주는 식별자 역할을 하는데, Serializable 인터페이스를 구현한 클래스를 컴파일하면 자동적으로 serialVersionUID 정적 필드가 추가됩니다. 문제는 클래스를 재컴파일하면 serialVersionUID의 값이 달라진다는 것입니다. 네트워크로 객체를 직렬화하여 전송하는 경우, 보내는 쪽과 받는 쪽이 모두 같은 serialVersionUID를 갖는 클래스를 가지고 있어야 하는데 한 쪽에서 클래스를 변경해서 재컴파일하면 다른 serialVersionUID를 가지게 되므로 역직렬화에 실패하게 됩니다.
+
+
+## WriteObject()와 readObject() 메소드
+두 클래스가 상속관계에 있다고 가정해봅시다. 부모 클래스가 Serializable 인터페이스를 구현하고 있으면 자식 클래스는 Serializable 인터페이스를 구현하지 않아도 자식 객체를 직렬화하면 부모 필드 및 자식 필드가 모두 직렬화 됩니다. 하지만 그 반대로 부모 클래스가 Serializable 인터페이스를 구현하지 않고, 자식 클래스만 Serializable 인터페이스를 구현하고 있다면 자식 객체를 직렬화 할 때 부모의 필드는 직렬화에서 제외됩니다. 이 경우 부모 클래스의 필드를 직렬화 하고 싶다면 다음 두가지 방법 중 하나를 선택해야합니다.
+
+- 부모 클래스가 Serializable 인터페이스를 구현하도록 합니다.
+- 자식 클래스에서 writeObject()와 readObject() 메소드를 선언해서 부모 객체의 필드를 직접 출력시킵니다.
+
+첫 번재 방법이 제일 좋은 방법이 되겠지만, 부모 클래스의 소스를 수정할 수 없는 경우에는 두 번째 방법을 사용해야 합니다. writeObject() 메소드는 직렬화될 때 자동으로 호출되고, readObject() 메소드는 역직렬화될 때 자동적으로 호출됩니다. 다음은 writeObject()와 readObject() 메소드의 선언 방법을 보여줍니다.
+
+```java
+private void writeObject(ObjectOutputStream out) throws IOException {
+    out.wirteXXX(부모필드); // 부모 객체의 필드값을 출력함
+    ..
+    out.defaultWriteObject(); // 자식 객체의 필드값을 직렬화
+}
+```
+
+```java
+private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+    부모필드 = in.readXXX();  // 부모 객체의 필드값을 읽어옴
+    ..
+    in.defaultReadObject(); // 자식 객체의 필드값을 역직렬화
+}
+```
+두 메소드를 작성할 때 주의할 점은 접근 제한자가 private가 아니면 자동 호출되지 않기 때문에 반드시 private를 붙어주어야 합니다. 
