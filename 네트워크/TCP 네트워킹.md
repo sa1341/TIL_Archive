@@ -17,3 +17,22 @@ ServerSocket serverSocket = new ServerSocket(5001);
 ```
 
 ServerSocket을 얻는 다른 방법은 디폴트 생성자로 객체를 생성하고 포트 바인딩을 위해 bind() 메소드를 호출하는 것입니다. bind() 메소드의 매개값은 포트 정보를 가진 InetSocketAddress입니다.
+
+만약 서버 PC에 멀티 IP가 할당되어 있을 경우, 특정 IP로 접속할 때만 연결 수락을 하고 싶다면 다음과 같이 작성하되, "localhost" 대신 정확한 IP를 주면 됩니다.
+
+ServerSocket을 생성할 때 해당 포트가 이미 다른 프로그램에서 사용 중이라면 BindException이 발생합니다. 이 경우에는 다른 포트로 바인딩 하거나, 다른 프로그램을 종료하고 다시 실행하면 됩니다.
+
+포트 바인딩까지 끝났다면 ServerSocket은 클라이언트 연결 수락을 위해 accept() 메소드를 실행해야 합니다. accept() 메소드는 클라이언트가 연결 요청하기 전까지 블로킹 되는데, 블로킹이란 스레드가 대기 상태가 된다는 뜻입니다. 그렇기 때문에 UI를 생성하는 스레드나, 이벤트를 처리하는 스레드에서 accept() 메소드를 호출하지 않도록 합니다. 블로킹이 되면 UI 갱신이나 이벤트 처리를 할 수 없기 때문입니다. 클라이언트가 연결 요청을 하면 accept()는 클라이언트와 통신할 Socket을 만들고 리턴합니다. 이것이 연결 수락입니다. 만약 accept()에서 블로킹되어 있을 때 ServerSocket을 닫기 위해 close() 메소드를 호출하면 SocketException이 발생합니다. 그렇기 때문에 예외 처리가 필요합니다.
+
+```java
+try {
+    Socket socket = ServerSocket.accept();
+
+} catch(Excpetion e) { }
+```
+
+연결된 클라이언트의 IP와 포트 정보를 알고 싶다면 Socket의 getRemoteSocketAddress() 메소드를 호출해서 SocketAddress를 얻으면 됩니다. 실제 리턴되는 것은 InetSocketAddress 객체이므로 다음과 같이 타입 변환할 수 있습니다.
+
+```java
+InetSocketAddress socketAddress = (InetSokcetAddress) socket.getRemoteSocketAddress();
+```
