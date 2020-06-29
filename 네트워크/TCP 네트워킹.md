@@ -36,3 +36,18 @@ try {
 ```java
 InetSocketAddress socketAddress = (InetSokcetAddress) socket.getRemoteSocketAddress();
 ```
+
+InetSocketAddress에는 IP와 포트 정보를 리턴하는 다음과 같은 메소드들이 있습니다.
+
+- getHostName(): 클라이언트 IP를 리턴
+- getPort(): 클라이언트 포트 번호 리턴
+- toString(): "IP 포트번호" 형태의 문자열 리턴
+
+
+더 이상 클라리언트 연결 수락이 필요 없으면 ServerSocket의 close() 메소드를 호출해서 포트를 언바인딩시켜야 합니다. 그래야 다른 프로그램에서 해당 포트를 재사용 할 수 있습니다.
+
+```java
+serverSocket.close();
+```
+
+아래 코드는 반복적으로 accept() 메소드를 호출해서 다중 클라리언트 연결을 수락하는 가장 기본적인 코드를 보여줍니다.
