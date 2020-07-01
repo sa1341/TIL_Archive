@@ -51,3 +51,53 @@ serverSocket.close();
 ```
 
 아래 코드는 반복적으로 accept() 메소드를 호출해서 다중 클라리언트 연결을 수락하는 가장 기본적인 코드를 보여줍니다.
+```java
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+public class ServerExample {
+    public static void main(String[] args) {
+        ServerSocket serverSocket = null;
+
+        try {
+            serverSocket = new ServerSocket();
+            serverSocket.bind(new InetSocketAddress("localhost", 5001));
+
+            while (true) {
+                System.out.println("[연결 기다림]");
+                Socket socket = serverSocket.accept();
+                InetSocketAddress isa =  (InetSocketAddress) socket.getRemoteSocketAddress();
+                System.out.println("[연결 수락함]" + isa.getHostName());
+            }
+
+        } catch (Exception e) {}
+
+
+        if (!serverSocket.isClosed()) {
+
+            try {
+                serverSocket.close();
+            }catch (IOException e1) {}
+        }
+    }
+}
+```
+
+클라이언트가 서버에 연결 요청을 하려면 java.net.Socket을 이용해야 합니다. Socket 객체를 생성함과 동시에 연결 요청을 하려면 생성자의 매개값으로 서버의 IP 주소와 바인딩 포트 번호를 제공하면 됩니다. 다음은 로컬 PC의 5001 포트에 연결 요청하는 코드입니다.
+
+```java
+try {
+    Socket socket = new Socket("localhost", 5001);
+    Socket socket = new Socket(new InetSocketAddress("localhost", 5001));
+} catch (UnknownHostException e) {
+    // IP 표기 방법이 잘못되었을 경우
+} catch (IOException e) {
+    //해당 포트의 서버에 연결할 수 없는 경우
+}
+```
+
+외부 서버에 접속하려면 localhost 대신 정확한 IP를 입력하면 됩니다. 만약 IP 대신 도메인 이름만 알고 있다면, 도메인 이름을 IP 주소로 번역해야 하므로 InetSocketAddress 객체를 이용하는 방법을 사용해야 합니다. Socket 생성과 동시에 연결 요청을 하지 않고, 다음과 같이 기본 생성자로 Socket을 생성한 후, connect() 메소드로 연결 요청을 할 수도 있습니다.
+
+
