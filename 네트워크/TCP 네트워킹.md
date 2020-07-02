@@ -101,3 +101,28 @@ try {
 외부 서버에 접속하려면 localhost 대신 정확한 IP를 입력하면 됩니다. 만약 IP 대신 도메인 이름만 알고 있다면, 도메인 이름을 IP 주소로 번역해야 하므로 InetSocketAddress 객체를 이용하는 방법을 사용해야 합니다. Socket 생성과 동시에 연결 요청을 하지 않고, 다음과 같이 기본 생성자로 Socket을 생성한 후, connect() 메소드로 연결 요청을 할 수도 있습니다.
 
 
+다음 에제는 localhost 5001 포트로 연결을 요청하는 코드입니다. connect() 메소드가 정상적으로 리턴하면 연결이 성공한 것입니다.
+
+```java
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+
+public class ClientExample {
+    public static void main(String[] args) {
+        Socket socket = null;
+        try {
+            socket = new Socket();
+            System.out.println("연결 요청");
+            socket.connect(new InetSocketAddress("localhost", 5001));
+            System.out.println("[연결 성공]");
+        } catch (Exception e) {}
+        
+        if (!socket.isClosed()) {
+            try {
+                socket.close();
+            } catch (IOException e1) {}
+        }
+    }
+}
+```
