@@ -126,3 +126,36 @@ public class ClientExample {
     }
 }
 ```
+
+## Soket 데이터 통신
+클라이언트가 연결 요청(connect())하고 서버가 연결 수락(accept()) 했다면, 양쪽의 Socket 객체로부터 각각 입력 스트림(InputStream)과 출력 스트림(OutputStream)을 얻을 수 있습니다.
+
+다음은 Socket으로부터 InputStream과 OutputStream을 얻는 코드입니다.
+
+```java
+// 입력 스트림 얻기
+InputStream is = socket.getInputStream();
+
+// 출력 스트림 얻기
+OutputStream os = socket.getOutputStream();
+```
+
+상대방에게 데이터를 보내기 위해서는 보낼 데이터를 byte[] 배열로 생성하고, 이것을 매개값으로 해서 OutputStream의 write() 메소드를 호출하면 됩니다. 다음은 문자열을 UTF-8로 인코딩한 바이트 배열을 얻어내고, write() 메소드로 전송합니다.
+
+```java
+String data = "보낼 데이터";
+byte[] byteArr = data.getByte("UTF-8");
+OutputStream outputStream = socket.getOutputSteam();
+outputStream.write(byteArr);
+outputStream.flush();
+```
+
+상대방이 보낸 데이터를 받기 위해서는 받은 데이터를 저장하할 byte[] 배열을 하나 생성하고, 이것을 매개값으로 해서 InputStream의 read() 메소드를 호출하면 됩니다. read() 메소드는 읽은 데이터를 byte[] 배열에 저장하고 읽은 바이트 수를 리턴합니다. 다음은 데이터를 읽고 UTF-8로 디코딩한 문자열을 얻는 코드입니다.
+
+```java
+byte[] byteArr = new byte[100];
+InputStream inputStream = socket.getInputStream();
+int readByteCount = inputStream.read(byteArr);
+String data = new String(byteArr, 0, readByteCount, "UTF-8");
+```
+
