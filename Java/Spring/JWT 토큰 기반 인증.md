@@ -202,7 +202,7 @@ Header . Payload . Signature
 ```
 
 위의 내용을 BASE64로 인코딩합니다. => eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
-`BASE64`는 암호화된 문자열이 아닙니다. 같은 무자열에 대해서는 항상 같은 인코딩 문자열을 반환합니다.
+`BASE64`는 암호화된 문자열이 아닙니다. 같은 자열에 대해서는 항상 같은 인코딩 문자열을 반환합니다.
 
 
 ## Payload
