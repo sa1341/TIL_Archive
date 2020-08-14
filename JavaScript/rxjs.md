@@ -341,5 +341,9 @@ subscriber에서 onNext, onComplete, onError의 알림에 대한 리스너를 �
 1. 한번에 하나의 데이터를 처리합니다.
 2. 서버로 보낸 요청을 취소할 수 없습니다.
 
+## RxJS finalize 
+
+finalize는 java의 try-catch-finally처럼 Observable이 종료되면 호출되는 연산입니다. 정상적으로 로직이 수행되거나 예외가 발생하여도 종료시점에 호출하도록 되어 있습니다.
+주로 Http 통신으로 리턴될 때 종료 콜백으로도 많이 사용됩니다.
 
 #### 참조: https://poiemaweb.com/angular-rxjs
