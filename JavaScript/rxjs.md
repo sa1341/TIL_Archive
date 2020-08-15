@@ -323,6 +323,12 @@ Observable은 세 가지의 알림을 구독자에게 전달하며 아래와 같
 ###  Observable.unsubscribe()
   구독 해제 시점에 구독하고 있는 모든 대상의 구독을 종료합니다.
 
+## Observer & Observable
+
+observer 객체의 next함수를 사용하여 데이터를 time stream에다가 push 해줄 수 있습니다. 
+우리는 이를 publisher라고 할 수 있습니다. 그리고 Observable은 이 데이터를 subscribe할 수 있습니다. 
+우리는 observable을 subscriber라고 할 수 있습니다. 예전부터 많이 사용하던 pub/sub패턴을 생각하시면 됩니다.
+
 
 ## Observable의 다양한 함수 종류
 
