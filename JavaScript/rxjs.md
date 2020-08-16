@@ -352,4 +352,24 @@ subscriber에서 onNext, onComplete, onError의 알림에 대한 리스너를 �
 finalize는 java의 try-catch-finally처럼 Observable이 종료되면 호출되는 연산입니다. 정상적으로 로직이 수행되거나 예외가 발생하여도 종료시점에 호출하도록 되어 있습니다.
 주로 Http 통신으로 리턴될 때 종료 콜백으로도 많이 사용됩니다.
 
+## RxJS Subject 사용 예제
+
+아래 예제에서는 Subject를 만들고 subject를 subscribe한 다음, 동일한 subject 를 사용하여 observer에게 value를 publish 합니다. 
+그렇게함으로써 publication과 subscription을 동일한 출처로 결합한다.
+
+Observer를 사용하는 것 외에도 subscribe 메서드는 onNext에 대한 함수를 취할 수 있습니다. 
+즉, item이 게시될 때마다 action이 실행됩니다. 예제에서 onNext가 호출 될 때 마다 item이 console에 기록됩니다.
+
+
+```javascript
+var subject = new Rx.Subject(); 
+var subscription = subject.subscribe( x => console.log('next: ' + x), e => console.log('error: ' + e.message), 
+() => console.log('completed')); 
+subject.next(1); 
+// => next: 1 subject.next(2); 
+// => next: 2 subject.completed(); 
+// => completed subscription.dispose();
+```
+
+
 #### 참조: https://poiemaweb.com/angular-rxjs
