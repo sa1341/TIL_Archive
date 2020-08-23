@@ -72,7 +72,7 @@ HttpURLConnection http = (HttpURLConnection) u.openConnection();
  - 클라이언트가 보낸 요청이 클라이언트와 서버 사이에 있는 프록시 서버에서 변경되었는지를 확인할 필요가 있는 경우 등에 쓰임
 
 
-## HttpURLConnectio 객체의 메소드 정보
+## HttpURLConnection 객체의 메소드 정보
 
 setDoInput(boolean) : `Server 통신에서 입력 가능한 상태로 만듬 `
 - OutputStream으로 POST 데이터를 넘겨주겠다는 옵션.
