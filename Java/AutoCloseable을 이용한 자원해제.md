@@ -1,6 +1,6 @@
 # AutoCloseable 클래스
 
-`try-with-resources`는 try(...) 문에서 선언된 객체들에 대해서 try가 종료될 때 자동으로 자원을 해제해주는 기능입니다. 주로 외부 자원인 파일 관련 객체와 socket Handler 객체와 같은 자원들은 try-catch-finally 문을 사용하여 마지막에 다 사용한 자원을 해제하는 코드를 많이 보았을 겁니다. AutoClosable은 try에 선언된 객체가 AutoCloseable을 구현했더라면 java는 try 구문이 종료될 때 객체의 close() 메소드를 호출해 줍니다.
+`try-with-resources`는 try(...) 문에서 선언된 객체들에 대해서 try가 종료될 때 자동으로 자원을 해제해주는 기능입니다. 주로 외부 자원인 파일 관련 객체와 socket Handler 객체와 같은 자원들은 try-catch-finally 문을 사용하여 마지막에 다 사용한 자원을 해제하는 코드를 많이 보았을 겁니다. AutoCloseable은 try에 선언된 객체가 AutoCloseable을 구현했더라면 java는 try 구문이 종료될 때 객체의 close() 메소드를 호출해 줍니다.
 
 자바6에서 리소스 사용및 해제하는 방법을 한번 살펴보고, try-with-resources로 동일한 코드를 리팩토링해보면서 장점이 무엇인지 살펴보겠습니다.
 
@@ -133,7 +133,6 @@ public class CustomResource implements AutoCloseable {
 ![image](https://user-images.githubusercontent.com/22395934/75355616-1e2fcb00-58f2-11ea-8643-70376e7face7.png)
 
 > 참고로 close 메서드 구현시 구체적인 exception을 throw 하고, close 동작이 전혀 실패할 리가 없을 때는 exception을 던지지 않도록 구현하는 것을 강력하게 권고하고 있습니다. 특히 close 메서드에서 InterruptedException을 던지지 않는 것을 강하게 권고합니다. InterruptedException은 쓰레드의 인터럽트 상태와 상호작용 하므로 interruptedException이 억제되었을 때 런타임에서 잘못된 동작이 발생할 수 있기 때문입니다.
-
 
 
 
