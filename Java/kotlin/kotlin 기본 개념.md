@@ -61,4 +61,94 @@ val name // 불가능
 val name:String // 가능
 name = "hello"
 ```
-위와 같이 선언만 먼저 하는 ㄱ ㅕㅇ우에는 반드시 타입을 적어줘야 합니다.
+위와 같이 선언만 먼저 하는 경우에는 반드시 타입을 적어줘야 합니다.
+
+ex) 변수 선언 예제
+
+```kotlin
+// val var 차이
+val name:String = "immutable"
+var age:Int = 20
+name = "junyoung"  // val로 설정했으니까 컴파일 시점에 에러가 납니다.
+age = 30
+println("age: $age")  // $(달러표시)로 변수를 출력할 수 있습니다. 
+
+// 선언과 할당
+var number = 10
+number = 20
+var number2:Int // Int라고 타입을 줬으니까 선언만 해도 됩니다.
+number2 = 30
+val number4 // 이 변수는 타입을 가져야 하거나 초기화가 되어야된다는 에러가 납니다.
+```
+ 
+변수 타입 기본형(Primitive type)과 참조형(Reference type)
+
+코틀린에서는 참조형을 사용해서 코딩해야 합니다.
+참조형만 사용해도 괜찮은 이유는 컴파일러가 내부적으로 기본형으로 바꿔서 최적화된 바이트 코드로 만들어주기 때문이빈다.
+(int, long, double,.. 이런 기본형 타입 대신 Long, Double,.. 같은 참조형을 써야하고 이렇게 해도 내부적으로 잘 바꿔서 씁니다.)
+
+## 자료형 
+
+- 정수 자료형
+Long, Int, Short, Byte가 있습니다.
+변수를 선언할 때 타입을 별도로 적지 않으면 코틀린이 타입을 추론해서 지정해줍니다. 만약 100이라는 값을 주고, 타입을 생략하면 Int로 추론하고 99933322233344455는 Long으로 추론합니다.
+val ex1 = 100L 이렇게 접미사 L을 붙이면 Long 타입으로 추론합니다. 정수타입에서는 Int가 기본입니다. Short 범위 내 정수라고 해도 Short로 추론하지 않고 Int로 추론합니다.
+
+```kotlin
+val myLong = 99_933_322_233_344_455 // Long으로 추론
+val ex1 = 0x0F // 16진수 표기 15
+val ex2 = 0b0001111 // 2진수 표기 15
+```
+
+- 실수 자료형
+기본적으로 double로 추론, 값에 F를 붙이면 Float 타입으로 추론합니다.
+
+- 논리 자료형
+val isOpen = true 이렇게 하면 자동으로 Boolean으로 추론합니다.
+
+- 문자 자료형
+"(single quote)으로 한 문자를 지정하면 Char로 추론합니다.
+
+- 문자열 자료형
+문자열 타입은 다른 것들과 다르게 기본형이 아니라 참조형 타입입니다. 값에 문자를 배열하면 String 타입으로 추론합니다. 특징적인 것은 자바와 마찬가지로 힙에 StringPool을 공유한다는 것입니다.
+
+```kotlin
+var string1 = "hello"
+var string2 = "hello"
+println(${string1 === string2}) // true
+// string1과 string2가 참조하는 주소값이 같습니다.
+```
+
+문자열 내에 "(쌍따옴표)나 $(달러표시)를 쓰고 싶으면 백슬래시(\\)를 앞에 붙여서 사용하면 됩니다.
+
+```kotlin
+val expression = "\"hello\" this is \$10"
+```
+
+백슬래시 대신 ${""}이렇게 써도 쌍따옴표를 적용할 수 있습니다.
+
+-""" 문자열 사용 법(문자열 그 자체 그대로 표현하는 방법)
+
+```kotlin
+val num = 10
+val formattedString = """
+    var a = 11
+    var b = "hello kotlin"
+    """
+println(formattedString)
+```
+
+결과:
+
+var a = 11
+
+var b = "hello kotlin"
+
+
+- 자료형에 별명 붙이기
+
+```kotlin
+typealias Username = String
+val user:Username = "junyoung"
+```
+typealias 키워드를 이용해서 String 타입에 Username이라는 별명을 붙여서 사용했습니다. 
