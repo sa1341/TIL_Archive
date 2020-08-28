@@ -152,3 +152,46 @@ typealias Username = String
 val user:Username = "junyoung"
 ```
 typealias 키워드를 이용해서 String 타입에 Username이라는 별명을 붙여서 사용했습니다. 
+
+## 자료형 검사
+
+- 코틀린 null
+
+코틀린은 변수를 사용할 때 반드시 값이 할당되어 있어야 한다! 라는 원칙이 있습니다. (null을 싫어함) 지금까지 위에서 작성한 코드는 전부 다 변수에 null을 허용하지 않는 방식이 있습니다. 만약 null을 허용하고 싶으면 물음표(?) 기호를 타입 뒤에 붙여서 변수를 선언하면 됩니다.
+
+```kotlin
+// null 문제
+val str:String = "hello_world"
+str = null // 컴파일러에서 이미 에러 발생함
+// 타입 뒤에 ? 붙이면 null이 할당될 수 있는 변수라는 의미입니다.
+var str2:String? = "hello_world"
+str2 = null
+println(str2) // null 출력
+```
+
+```kotlin
+// non-null 단정 기호와 세이프 콜
+var nullableString:String? = "hello_kotlin"
+nullableString = null
+// println("nullableString: $nullableString.length: ${nullableString.length}") // .에서 컴파일 에러 발생
+
+//String? 타입에서는 ?.(세이프콜) 또는 !!.(non-null 단정기호)만 쓸 수 있다고 나온다. 
+//- safe call이란 말 그대로 안전하게 호출하도록 도와주는 기법이다. println("nullableString : $nullableString , length : ${nullableString?.length}") //출력 값 : nullableString : null , length : null
+```
+
+- 엘비스 연산자(?:)
+
+위에서 배운 세이프 콜과 엘비스 연산자를 같이 사용하면 아주 아름다운 null 처리가 가능합니다.
+
+```kotlin
+var testString:String? = "hello_kotlin"
+testString = null
+println("testString length: ${testString?.length ?: -1}")
+```
+
+testString이 세이프 콜로 length에 접근하지 않고 null을 리턴한다고 하였으니 엘비스 연산자의 앞의 값은 null 입니다.
+엘비스 연산자는 값이 null이면, 뒤에 미리 지정해 놓은 값을 리턴하는 연산자입니다. 따라서 출력은 -1로 지정해놓았으니까 -1이 나올 것입니다.
+
+if 문으로 null 검사를 일일이 할 필요가 없어지고 처리까지 한 줄에 되므로 가독성도 좋아집니다.
+
+
