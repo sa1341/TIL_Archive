@@ -194,4 +194,61 @@ testString이 세이프 콜로 length에 접근하지 않고 null을 리턴한�
 
 if 문으로 null 검사를 일일이 할 필요가 없어지고 처리까지 한 줄에 되므로 가독성도 좋아집니다.
 
+## 자료형 변환
 
+자바에서는 int 값을 double 변수에 할당하면 자동으로 타입이 변환되었습니다.
+
+```java
+int a = 3;
+double d = a; // 3.0으로 자동 변환
+```
+
+코틀린은 자동으로 형 변환을 시켜주지 않습니다. 오히려 타입 미스매치 에러를 내면서 실수를 철저하게 방지합니다. 그래서 코틀린은 형변환 메서드를 제공합니다.
+
+```kotlin
+val intValue:Int = 3
+val doubleValue:Double = intValue.toDouble()
+val result = 1L + 3 // Long으로 형변환 -> 표현범위가 더 큰쪽으로 변환됩니다.
+```
+
+> 기본형과 참조형 타입 비교 원리
+
+값 비교: ==, 값이 같으면 true 다르면 false
+
+참조 주소 비교: ===, 값과 상관없이 참조 자체가 동일하면 true 다르면 false(값과 상관없지만 참조 자체가 동일하면 값도 같습니다...)
+
+```kotlin
+val one:Int = 128
+val two:Int = 128
+
+println(one == two) // true
+println(one === two) // true
+
+val three:Int - 128
+val four:Int? = 128
+
+println(three == four) // true
+println(three === four) // false
+// Int 형으로 선언된 three는 128 값 자체가 스택에 저장, Int? 형으로 서언된 four는 128이 힙 영역에 저장되어 있고, 그것의 주소로 저장합니다.
+
+val data1:Int = 128 
+val data2 = data1; 
+println(data1 == data2)//기본형으로 int로 변환되어 값이 동일하므로 true val data3:Int? = data1 //128이라는 값을 힙에 할당하고 그것을 가리킨다. val data4:Int? = data1 //128이라는 값을 힙에 할당하고 그것을 가리킨다. val data5:Int? = data3 
+println(data3 == data4)//true 값만 비교했는데 두 개의 값은 128로 같습니다.
+
+println(data3 === data4) //false 
+println(data3 === data5) // true
+
+각각 값은 128로 동일하지만 힙에 생긴 128은 각각생기기 때문에 다른 주소를 가리키므로 주소비교는 false println(data3 === data5)//true data3는 128을 힙에 할당하고 그것을 가리키고 있다. data5는 data3를 가리키는데 data3가 힙의 128의 주소를 가리키고 있으므로 
+//복사되었을 때 같은 힙에 있는 128을 가리킨다.
+```
+
+메모리에 힙에 생성되느냐 스택에 생성되느냐를 일단 알아야 하는데 간략하게 설명하면 null을 허용하지 않는 변수는 참조형을 사용하더라도 내부적으로 기본형으로 값을 갖게 되는데 그것이 스택에 직접 할당됩니다. 그러나 null을 허용하는 변수는 기본형으로 변환되는 참조형일지라도 자기만의 값을 힙에 하당하고 그것을 가리키는 주소를 스택공간에 할당합니다.
+
+- 기본적으로 null을 허용한다는 것 그 자체로 그 변수를 객체로 본다는 뜻입니다. 기본형에는 null이란 것을 할당할 수 조차 없습니다.
+- -128 ~ 127의 정수 값은 캐시에 저장되어 참조됩니다.
+
+따라서 위의 예제에서 값을 만약 10으로 했다면 10이라는 값 자체가 캐시에 저장되고 모든 변수들은 그 캐시의 주소값을 저장하고 있을 것입니다.
+
+
+#### 참조: https://jeong-pro.tistory.com/194 [기본기를 쌓는 정아마추어 코딩블로그]
