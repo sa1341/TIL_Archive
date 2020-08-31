@@ -250,5 +250,20 @@ println(data3 === data5) // true
 
 따라서 위의 예제에서 값을 만약 10으로 했다면 10이라는 값 자체가 캐시에 저장되고 모든 변수들은 그 캐시의 주소값을 저장하고 있을 것입니다.
 
+## 스마트 캐스트
+어떤 값이 정수일 때도 있고 실수일 때도 있으면 어떻게 해야할까요?
+Number 타입이라는 것도 있습니다. (특수한 객체)
+Number 타입으로 정의된 변수에는 정수, 실수 둘다 들어갈 수 있습니다.
+
+```kotlin
+var sc:Number = 3.14
+println(sc) // 3.14 Double
+sc = 3
+println(sc) // 3 Int
+sc = 30L
+println(sc) // 30 Long
+sc = 10.1F
+println(sc) // 10.1 Float
+```
 
 #### 참조: https://jeong-pro.tistory.com/194 [기본기를 쌓는 정아마추어 코딩블로그]
