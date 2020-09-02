@@ -266,4 +266,41 @@ sc = 10.1F
 println(sc) // 10.1 Float
 ```
 
+## 자료형 검사할 때 is 키워드
+
+```kotlin
+val cup = 3
+if(cup is Int) {
+    println("Int Type")
+}
+if(cup !is Int) {
+    println("Not a Int Type")
+}
+if(!(cup is Int)) {
+    println("Not a Int Type")
+}
+```
+## 자료형 스마트 캐스트
+
+```kotlin
+val x:Any // Any는 자바의 Object와 유사합니다. 모든 타입의 부모 타입입니다. Any를 이용하면 자료형을 결정하지 않은 채로 변수를 선언할 수 있습니다.
+x = "jdk"
+if(x is String) { // is 키워드로 검사될 때 자동으로 스마트 캐스팅 되었으므로 해당 조건문을 탑니다.
+    println(x)
+}
+```
+
+## as 키워드에 의한 스마트 캐스트
+
+```kotlin
+var y:Int = 3
+val t:String = y as String 
+val tt:String? = y as? String
+```
+y가 null이 아니면 String으로 형변환되어 t에 할당됩니다. 만약 null이라면 형변환 할 수 없으므로 exception이 발생합니다.
+
+null이 발생할 가능성이 있다면 예외를 피하기 위해 아래와 같이 물음표를 붙여서 해결 가능합니다.
+
+y가 null이면 as 키워드에 접근하지 않고 null을 리턴합니다. 그러면 tt는 null이 가능하니까 null을 저장합니다.
+
 #### 참조: https://jeong-pro.tistory.com/194 [기본기를 쌓는 정아마추어 코딩블로그]
