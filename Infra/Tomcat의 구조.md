@@ -91,6 +91,30 @@ cd $TOMCAT_HOME/bin
 톰캣은 컨테이너 기능이 내장된 웹 서버라고 보면 됩니다. 동적으로 처리해야 할 때 내부 프로그램.. 서블릿이라고 불리는 자바 프로그램을 이용해서 처리 할 수 있도록
 지원을 해주는 웹 컨테이너 기능이 내장되어 있습니다.
 
+## JDK 설정
+
+WINDOWS
+
+%SERVER_HOME%/bin/catalina.bat 파일을 수정합니다.
+파일 상단에 아래 내용을 추가
+
+```java
+set JAVA_HOME=jdk 설치 위치
+```
+ 
+LINUX
+
+%SERVER_HOME%/bin/catalina.sh 파일을 수정합니다.
+파일 상단에 아래 내용을 추가
+
+```java
+JAVA_HOME=jdk 설치 위치
+```
+ 
+linux 에서 자바위치 찾기 
+> whereis java
+
+
 ##### 참조: https://atoz-develop.tistory.com/entry/Java-EE%EC%99%80-Servlet-JSP%EC%9D%98-%EA%B4%80%EA%B3%84%EC%99%80-WAS-%EA%B0%9C%EB%85%90-%EC%A0%95%EB%A6%AC
 
 
