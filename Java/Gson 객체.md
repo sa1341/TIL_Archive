@@ -135,6 +135,6 @@ public class GsonExamController {
     }
 }
 ```
-GsonExamController의 convToObjectFromGson()의 메소드를 호출하면 변환할 타입과 객체의 파라미터를 이용하여 객체로 바인딩을 해주는 Gson 객체를 생성하게 됩니다. 그리고 위의 예제에서는 List<String> 객체를 TypeToken 객체의 타입 파라미터로 명시해주었습니다. 이를 통해 내부적으로 리플렉션을 사용해서 Type을 구하는지는.. 정확히 모르겠지만 어쨌든 해당 타입을 구하게 됩니다. 물론 역시 List<String> 타입을 참조하게 되겠죠. 그리고 jsp 페이지에서 Json 문자열로 변환한 배열을 Argument로 넣어주게 되면 List<String> 타입 객체로 변환되는 것을 확인할 수 있습니다.
+GsonExamController의 convToObjectFromGson()의 메소드를 호출하면 변환할 타입과 객체의 파라미터를 이용하여 객체로 바인딩을 해주는 Gson 객체를 생성하게 됩니다. 그리고 위의 예제에서는 List<String> 객체를 TypeToken 객체의 타입 파라미터로 명시해주었습니다. 이를 통해 내부적으로 리플렉션을 사용해서 Type을 구하는지는... 정확히 모르겠지만 어쨌든 해당 타입을 구하게 됩니다. 물론 역시 List<String> 타입을 참조하게 되겠죠. 그리고 jsp 페이지에서 Json 문자열로 변환한 배열을 Argument로 넣어주게 되면 List<String> 타입 객체로 변환되는 것을 확인할 수 있습니다.
 
-앞으로 프로젝트에 기능 구현에서도 유용하게 사용할 수 있는 좋은 객체라고 생각하여 정리하였습니다.
+앞으로 프로젝트에 기능 구현에서도 유용하게 사용할 수 있는 좋은 객체라고 생각하여 정리하였습니다. 
