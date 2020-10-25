@@ -9,7 +9,6 @@ Base64는 데이터를 64진 법으로 나타냅니다. 이를 0 부터 63까지
 
 ![image](https://user-images.githubusercontent.com/22395934/97014060-cdf23100-1584-11eb-95ac-770aeaacf377.png)
 
-
 ex)
 
 1. M, a, n이라는 텍스트 문자가 있습니다. 이 문자들은 아스키 코드로 표현하면 77, 97, 110입니다. 
