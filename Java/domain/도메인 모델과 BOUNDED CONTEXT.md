@@ -42,3 +42,75 @@ BOUNDED CONTEXT가 도메인 모델만 포함하는 것은 아닙니다. BOUNDED
 
 한 BOUNDED CONTEXT에서 두 방식을 혼합해서 사용할 수도 있습니다. 대표적인 예가 CQRS 패턴입니다. CQRS는 Command Query Responsebility Segregation의 약자로 상태를 변경하는 명령 기능과 내용을 조회하는 쿼리 기능을 위한 모델을 구분하는 패턴입니다. 
 이 패턴은 단일 BOUNDED CONTEXT에 적용하면 상태 변경과 관련된 기능은 도메인 모델 기반으로 구현하고 조회 기능은 서비스 DAO를 이용해서 구현할 수도 있습니다.
+
+## BOUNDED CONTEXT 간 통합
+
+온라인 쇼핑 사이트에서 매출 증대를 위해 카탈로그 하위 도메인에 개인화 추천 기능을 도입하기로 했습니다. 기존 카탈로그 시스템을 개발하던 팀과 별도로 추천 시스템을 담당하는 팀이 생겨서 이 팀에 주도적으로 추천 시스템을 만들기로 했습니다. 이렇게 되면 카탈로그 하위 도메인에는 기존 카탈로그를 위한 BOUNDED CONTEXT와 추천 기능을 위한 BOUNDED CONTEXT가 생깁니다.
+
+두 팀이 관련된 BOUNDED CONTEXT를 개발하면 자연스럽게 두 BOUNDED CONTEXT 간 통합이 발생합니다. 카탈로그와 추천 BOUNDED CONTEXT 간 통합이 필요한 기능은 다음과 같습니다.
+
+- 사용자가 제품 상세 페이지를 볼 때, 보고 있는 상품과 유사한 상품 목록을 하단에 보여줍니다.
+
+사용자가 카탈로그 BOUNDED CONTEXT에 추천 제품 목록을 요청하면 카탈로그 BOUNDED CONTEXT는 추천 BOUNDED CONTEXT로 부터 추천 정보를 읽어와 추천 제품 목록을 제공합니다. 이때 카탈로그 컨텍스트와 추천 컨텍스트의 도메인 모델은 서로 다릅니다. 카탈로그 제품을 중심으로 도메인 모델을 구현하지만 추천은 추천 연산을 위한 모델을 구현합니다. 예를 들어, 추천 시스템은 상품의 상세 정보를 포함하지 않으며 상품 번호 대신 아이템 ID라는 용어를 사용해서 식별자를 표현하고 추천 순위와 같은 데이터를 담게 됩니다.
+
+카탈로그 시스템은 추천 시스템으로부터 추천 데이터를 받아오지만, 카탈로그 시스템에서는 추천의 도메인 모델을 사용하기 보다는 카탈로그 도메인 모델을 사용해서 추천 상품을 표현해야 합니다. 즉, 다음과 같이 카탈로그의 모델을 기반으로 하는 도메인 서비스를 이용해서 상품 추천 기능을 표현해야 합니다.
+
+
+```java
+/**
+* 상품 추천 기능을 표현하는 도메인 서비스
+*/
+public interface ProductRecommendationService {
+    public List<Product> getRecommendationsOf(ProductId id);
+}
+```
+
+도메인 서비스를 구현한 클래스는 인프라스트럭처 영역에 위치합니다. 이 클래스는 외부 시스템과의 연동을 처리하고 외부 시스템 모델과 현재 도메인 모델 간의 변환을 책임집니다.
+
+예를 들어, RecSystemClient는 위의 ProductRecommendationService를 구현한 인프라스트럭처 영역에 있는 클래스입니다. RecSystemClient의 역할은 외부 추천 시스템이 제공하는 REST API를 이용해서 특정 상품을 위한 추천 상품 목록을 로딩하는 것입니다. 이 REST API가 제공하는 데이터는 추천 시스템 모델을 기반으로 하고 있기 때문에 API 응답은 다음과 같이 상품 도메인 모델과 일치하지 않는 데이터를 제공할 것입니다.
+
+```java
+[
+    {itemId: 'PROD-1000', type: 'PRODUCT', rank: 100},
+    {itemId: 'PROD-1001', type: 'PRODUCT', rank: 54}
+]
+```
+
+RecSystemClient는 REST API로부터 데이터를 읽어와 카탈로그 도메인에 맞는 상품모델로 변환합니다. 다음은 일부 코드를 가상으로 만들어 본 것입니다.
+
+```java
+public class RecSystemClient implements ProductRecommendationService {
+    private ProductRepository productRepository;
+
+    @Override
+    public List<Product> getRecommendationsOf(ProductId id) {
+
+        List<RecommendationItems> items = getRecItems(id.getValue());
+        return toProducts(items);
+    }
+
+    
+    private List<RecommendationItems> getRecItems(String itemId) {
+        // externalRecClient는 외부 추천 시스템을 위한 클라이언트라고 가정
+        return externalRecClient.getRecs(itemId);
+    }
+
+    private List<Product> toProducts(List<RecommendationItems> itmes) {
+        items.stream()
+            .map(item -> toProductId(item.getItemId()))
+            .map(productId -> productRepository.findById(productId))
+            .collect(toList());
+
+    }
+
+    private ProductId toProductId(String itemId) {
+        return new Product(itemId);
+    }
+}
+```
+
+이 코드에서 getRecItems() 메서드에서 사용하는 externalRecClient는 외부 추천 시스템에 연결할 때 사용하는 클라이언트로서 추천 시스템을 관리하는 팀에서 배포하는 모듈이라고 가정합시다. 이 모듈이 제공하는 RecommendationItem은 추천 시스템의 모델을 따를 것입니다. RecSystemClient는 추천 시스템의 모델을 받아와 toProducts() 메서드를 이용해서 카탈로그 도메인의 Product 모델로 변환하는 작업을 처리합니다.
+
+
+#### 참조: DDD Start!
+
