@@ -86,3 +86,20 @@ handleDecrease = () => {
 ```
 
 그리고 render() 메서드처럼 함수 선언식이 아니고 화살표 방식으로 함수를 생성한 이유는 선언식으로 생성할 경우에는 this.setState()에서 this가 Counter 컴포넌트에 바인딩이 되지 않아 정상적으로 setState()가 실행되지 않기 때문입니다. 
+
+>> 화살표 함수는 자신만의 this를 갖지 않기 때문에, 바깥 스코프에서 this의 값을 계승받습니다. 그러나 이러한 특징 때문에 객체의 메소드로 화살표 함수를 사용하는 것은 적합하지 않습니다. 
+
+```javascript
+const person = {
+    nmae: "junyoung",
+    greet: () => console.log(`${this.name}`)
+};
+person.greet(); // hi
+```
+
+위 예제에서 보듯이 바깥 스코프에서 this의 값을 계승받습니다. 즉, this는 메소드를 호출한 객체를 가르키지 않고 상위 컨텍스트인 전역 객체, window를 가리키게 됩니다. node.js일 경우 global을 가르킬 겁니다.
+
+객체의 메소드에서는 화살표 함수가 아닌, function 문법 함수를 사용해야 합니다.
+
+function 문법과 화살표 함수의 차이점은 function 문법에서 this는 함수가 어떻게 실행되는 가에 따라서 동적으로 바뀌게 됩니다. 반면에 화살표 함수의 경우 화살표 함수가 정의된 곳의 문맥에 의해서 this가 정의됩니다.
+
