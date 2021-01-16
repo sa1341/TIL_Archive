@@ -333,5 +333,189 @@ console.log(nextArr.toJS());
 render(<App />, document.getElementById('root'));
 ```
 
+## 리액트 컴포넌트에서 Immutable 사용하기
+
+Imutable은 페이스북에서 만들었기 때문에 React와 호환이 어느정도 되긴 합니다. state 자체를 Imutable 데이터로 사용하는것 까지는 지원되지 않습니다. 따라서, state 내부에 하나의 Immutable 객체를 만들어두고, 상태를 모두 이 객체를 통해서 진행하면 됩니다.
+
+우선 state부터 변경해보겠습니다.
+
+```javascript
+state = {
+   data: Map({
+      input: '',
+      users: List([
+        Map({
+          id:1,
+          username: 'junyoung'
+        }),
+        Map({
+          id:2,
+          username: 'gwanyoung'
+        })
+      ])
+    })
+}
+```
+
+data라는 Map을 만들었고, 그 내부에는 users List가 있고, 그안에 또 Map 두개가 안에 들어있습니다. 이렇게 수정을 하고 나면 코드에서 오류가 나기 시잘할 것입니다. 이제 차근차근 다른 컴포넌트들도 수정해보겠습니다.
+
+이제 setState를 하게 될 대도 코드를 조금씩 바꿔줘야 합니다.
+
+onChange 부터 수정하겠습니다.
+
+```javascript
+onChange = (e) => {
+    const { value } = e.target;
+    const { data } = this.state;
+
+    this.setState({
+        data: data.set('input', value)
+    });
+}
+```
+set을 통해서 값을 변경하였습니다.
+
+그 다음엔, onButtonClick도 수정하겠습니다.
+
+```javascript
+onButtonClick = () => {
+
+    const { data } = this.state;
+    this.setState({
+        data: data.set('input', '')
+                .update('users', users => users.push(Map({
+                    id: this.id++,
+                    username:'judante'
+                })))
+    });
+}
+```
+
+여기는 이전 코드보다 아주 조금 복잡해졌습니다. 이 함수에서는 input 값을 공백으로 만들어야 하고, users에 새 Map을 추가해줘야 합니다. 이렇게 여러가지를 하는 경우에는 함수들을 중첩하여 사용하면 됩니다. data.set(...).update(...) 형식으로 말입니다.
+
+상태 업데이트 로직이 완성되고 나면, render 함수도 변경해줘야 합니다. Map 혹은 List 값을 읽을 땐 data.users 이런식으로는 읽지 못하고, data.get('users') 이런식으로 읽어야 합니다.
+
+
+```javascript
+render() {
+    const { onChange, onButtonClick } = this;
+    const { data } = this.state;
+    const input = data.get('input');
+    const users = data.get('users');
+
+    return (
+      <div>
+        <div>
+          <input onChange={onChange} value={input} />
+          <button onClick={onButtonClick}>추가</button>
+        </div>
+        <h1>사용자 목록</h1>
+        <div>
+          <UserList users={users} />
+        </div>
+      </div>
+    );
+  }
+}
+```
+
+UserList와 User에서도 마찬가지로 값을 읽어올때 get을 사용해주어야 합니다.
+
+### UserList.js
+
+```javascript
+import React, { Component } from 'react';
+import User from './User';
+
+class UserList extends Component {
+  
+  shouldComponentUpdate(nextProps, nextState) {
+    return nextProps.users !== this.props.users;
+  }
+  
+  renderUsers = () => {
+    const { users } = this.props;
+    return users.map((user) => (
+      <User key={user.get('id')} user={user} />
+    ))
+  }
+
+  render() {
+    console.log('UserList 가 렌더링되고 있어요!')
+    const { renderUsers } = this;
+    return (
+      <div>
+        {renderUsers()}
+      </div>
+    );
+  }
+}
+
+export default UserList;
+```
+
+### User.js
+
+```javascript
+import React, { Component } from 'react';
+
+class User extends Component {
+  shouldComponentUpdate(nextProps, nextState) {
+    return this.props.user !== nextProps.user;
+  }
+  render() {
+    const { username } = this.props.user.toJS();
+    console.log(username);
+    return (
+      <div>
+        {username}
+      </div>
+    );
+  }
+}
+
+export default User;
+```
+
+User 컴포넌트에서는, username을 보여주기 위해서, const username = this.props.user.get('username')을 해도 좋습니다. 하지만 위와 같은 형식으로 toJS()를 한 결과를 비구조화 할당하는 방법도 있습니다.
+
+## Record 사용하기
+
+get, getIn이 하는게 싫다면 Record를 사용하는 방법도 있습니다. Immutable에서 제공합니다. Imuutable의 set, update, delete 등을 계속 사용할 수 있으면서도, 값을 조회 할 때 get, getIn을 사용 할 필요 없이, data.input 이런식으로 조회를 할 수 있습니다.
+
+
+Record는 Typescript 같은 타입시스템을 도입할 때 굉장이 유용합니다.
+
+Record 연습 코드를 작성해 보겠습니다.
+
+```javascript
+import React from 'react';
+import { render } from 'react-dom';
+import App from './App';
+import { Record } from 'immutable';
+
+const Person = Record({
+  name:'임준영',
+  age:30
+});
+
+let person = Person();
+
+console.log(person.name);
+person = person.set('name', 'haha');
+
+console.log(person.name);
+
+const nested = Record({
+  foo: Record({
+    bar: true
+  })()
+})();
+
+console.log(nested.foo.bar);
+
+render(<App />, document.getElementById('root'));
+```
+
 
 #### 참조: https://velopert.com/3486
