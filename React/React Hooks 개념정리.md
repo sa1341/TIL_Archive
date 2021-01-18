@@ -262,6 +262,7 @@ const Info = () => {
     setName(value);
   };
 
+
   const onChangeNickname = (e) => {
     const { value } = e.target;
     setNickname(value);
@@ -524,6 +525,284 @@ const App = () => {
 
 export default App;
 ```
+
+## useMemo
+
+useMemo를 사용하면 함수형 컴포넌트 내부에서 발생하는 연산을 최적화 할 수 있습니다. 먼저 리스트에 숫자들을 추가하면 해당 숫자들의 평균을 나타내는 함수형 컴포넌트를 작성해보겠습니다.
+
+### Average.js
+
+```javascript
+import React, { useState } from 'react';
+
+const getAverage = numbers => {
+  console.log('평균 값 계산 중....');
+  
+  if (numbers.length === 0) return 0;
+  const sum = numbers.reduce((a, b) => a + b);
+  return sum / numbers.length;
+}
+
+const Average = () => {
+
+  const [ list, setList ] = useState([]);
+  const [ number, setNumber ] = useState('');
+
+  const onChange = (e) => {
+    const { value } = e.target;
+    setNumber(value);
+  }
+
+  const onInsert = () => {
+    const nextList = list.concat(parseInt(number));
+    setList(nextList);
+    setNumber('');
+  }
+
+  return (
+    <div>
+      <input value={number} onChange={onChange} />
+      <button onClick={onInsert}>등록</button>
+      <ul>
+    
+      </ul>
+      <div>
+        <b>평균 값:</b>{getAverage(list)}
+      </div>
+    </div>
+  );
+};
+
+export default Average;
+```
+
+### App.js
+
+```javascript
+import React from "react";
+import Average from './Average';
+
+const App = () => {
+  return (
+    <div>
+      <Average />
+    </div>
+  );
+};
+
+export default App;
+```
+
+
+reduce()는 빈 요소를 제외하고 배열 내에 존재하는 각 요소에 대해 callback 함수를 한 번씩 실행하는데, 콜백 함수는 다음의 네 인수를 받습니다. 1. accumulator, currentValue, currentIndex, array 콜백이 최초 호출 때 accumulator와 currentValue는 다음 두 가지 값 중 하나를 가질 수 있습니다. 만약 reduce() 함수 호출에서 initialValue를 제공한 경우, accumulator는 initialValue와 같고 currentValue는 첫 번째 값과 같습니다. initialValue를 제공하지 않는다면, accumulator는 첫 번째 값과 같고 currentValue는 두 번째와 같습니다.
+
+
+>> 참고: initialValue를 제공하지 않으면, reduce()는 인덱스 1부터 시작해 콜백 함수를 실행하고 첫 번째 인덱스는 건너 뜁니다. initialValue를 제공하면 인덱스 0에서 시작합니다.
+
+### 실행 결과
+
+![image](https://user-images.githubusercontent.com/22395934/104919038-fa2d1a80-59d8-11eb-8a63-b15d09a756d4.png)
+
+평균 값은 잘보여지고 있는데, 숫자를 등록할 때 뿐만 아니라 인풋 내용이 수정 될 때도 우리가 만든 getAverage 함수가 호출되고 있는 것을 확인 할 수 있습니다. 인풋 내용이 바뀔 땐 평균 값을 다시 계산할 필요가 없는데, 이렇게 렌더링 할 때마다 계산을 하는 것은 낭비입니다.
+
+useMemo Hook을 사용하면 이러한 작업을 최적화 할 수 있습니다. 렌더링 하는 과정에서 특정 값이 바뀌었을 때만 연산을 실행하고 만약에 원하는 값이 바뀐 것이 아니라면 이전에 연산했던 결과를 다시 사용하는 방식입니다.
+
+코드를 다음과 같이 수정해보겠습니다.
+
+```javascript
+import React, { useState, useMemo } from 'react';
+
+const getAverage = numbers => {
+  console.log('평균 값 계산 중....');
+  
+  if (numbers.length === 0) return 0;
+  const sum = numbers.reduce((a, b) => a + b);
+  return sum / numbers.length;
+}
+
+const Average = () => {
+
+  const [ list, setList ] = useState([]);
+  const [ number, setNumber ] = useState('');
+
+  const onChange = (e) => {
+    const { value } = e.target;
+    setNumber(value);
+  }
+
+  const onInsert = () => {
+    const nextList = list.concat(parseInt(number));
+    setList(nextList);
+    setNumber('');
+  }
+
+  const avg = useMemo(() => getAverage(list), [list]);
+
+  return (
+    <div>
+      <input value={number} onChange={onChange} />
+      <button onClick={onInsert}>등록</button>
+      <ul>
+        {
+          list.map((value, index) => 
+            <li key={index}>{value}</li>
+          )
+        }
+      </ul>
+      <div>
+        <b>평균 값:</b>{avg}
+      </div>
+    </div>
+  );
+};
+
+export default Average;
+```
+
+이제 list 배열의 내용이 바뀔 때에만 getAverage 함수가 호출됩니다.
+
+
+## useCallback
+
+useCallback은 useMemo와 상당히 비슷한 함수입니다. 주로 렌더링 성능을 최적화해야 하는 상황에서 사용하는데요, 이 Hook을 사용하면 이벤트 핸들러 함수를 필요할 때만 생성 할 수 있습니다.
+우리가 방금 구현한 Average 컴포넌트를 보면, onChange와 onInsert라는 함수를 선언해주었습니다. 이렇게 선언을 하게 되면 컴포넌트가 리렌더링 될 때마다 이 함수들이 새로 생성됩니다. 대부분의 경우에는 이러한 방식이 문제가 되지 않지만, 컴포넌트의 렌더링이 자주 발생하거나, 렌더링 해야 할 컴포넌트의 개수가 많아진다면 이 부분을 최적화 해 줄 수 있습니다.
+
+useCallback을 사용하는 예제를 보겠습니다.
+
+```javascript
+import React, { useState, useMemo, useCallback } from 'react';
+
+const getAverage = numbers => {
+  console.log('평균 값 계산 중....');
+  
+  if (numbers.length === 0) return 0;
+  const sum = numbers.reduce((a, b) => a + b);
+  return sum / numbers.length;
+}
+
+const Average = () => {
+
+  const [ list, setList ] = useState([]);
+  const [ number, setNumber ] = useState('');
+
+  const onChange = useCallback(e => {
+    const { value } = e.target;
+    setNumber(value);
+  }, []);
+
+  const onInsert = useCallback(e => {
+    console.log('onInsert function created');
+    const nextList = list.concat(parseInt(number));
+    setList(nextList);
+    setNumber('');
+  },[number, list]);
+
+  const avg = useMemo(() => getAverage(list), [list]);
+
+  return (
+    <div>
+      <input value={number} onChange={onChange} />
+      <button onClick={onInsert}>등록</button>
+      <ul>
+        {
+          list.map((value, index) => 
+            <li key={index}>{value}</li>
+          )
+        }
+      </ul>
+      <div>
+        <b>평균 값:</b>{avg}
+      </div>
+    </div>
+  );
+};
+
+export default Average;
+```
+
+useCallback의 첫 번째 파라미터에는 우리가 생성해주고 싶은 함수를 넣어주고, 두 번째 파라미터에는 배열을 넣어주면 되는데 이 배열에는 어떤 값이 바뀌었을 때 함수를 새로 생성해주어야 하는지 명시해주어야 합니다.
+
+만약애 onChange처럼 비어있는 배열을 넣게 되면 컴포넌트가 렌더링 될 때 단 한번만 함수가 생성되며, onInsert처럼 배열 안에 number와 list를 넣게 되면 인풋 내용이 바뀌거나 새로운 항목이 추가될 때마다 함수가 생성됩니다.
+
+함수 내부에서 기존의 상태 값을 의존해야 할 때는 꼭 두 번째 파라미터 안에 포함을 시켜주어야 합니다. 예를 들어서 onChange의 경우에 기존의 값을 조회하는 일은 없고 바로 설정만 하기 때문에 배열이 비어있어도 상관이 없지만, onInsert는 기존의 number와 list를 조회해서 nextList를 생성하기 때문에 배열 안에 number와 list를 꼭 넣어주어야 합니다.
+
+참고로 다음 두 코드는 완벽히 똑같은 코드입니다.
+
+```javascript
+useCallback(() => {
+    console.log('hello world!');
+}, [])
+
+useMemo(() => {
+    const fn = () => {
+        console.log('hello world!')'
+    };
+    return fn;
+}, [])
+```
+
+useCallback은 결국 useMemo에서 함수를 반환하는 상황에서 더 편하게 사용할 수 있는 Hook 입니다. 숫자, 문자열, 객체처럼 일반 값을 재사용하기 위해서는 useMemo를, 그리고 함수를 재사용하기 위해서는 useCallback을 사용하세요.
+
+
+## useRef
+
+useRef Hook은 함수형 컴포넌트에서 ref를 쉽게 사용할 수 있게 해줍니다. Average 컴포넌트에서 등록 버튼을 눌렀을 때 포커스가 인풋 쪽으로 넘어가도록 코드를 작성하였습니다.
+
+### Average.js
+
+```javascript
+import React, { useState, useMemo, useCallback, useRef } from 'react';
+
+const getAverage = numbers => {
+  console.log('평균 값 계산 중....');
+  
+  if (numbers.length === 0) return 0;
+  const sum = numbers.reduce((a, b) => a + b);
+  return sum / numbers.length;
+}
+
+const Average = () => {
+
+  const [ list, setList ] = useState([]);
+  const [ number, setNumber ] = useState('');
+  const inputEl = useRef(null);
+
+  const onChange = useCallback(e => {
+    const { value } = e.target;
+    setNumber(value);
+  }, []);
+
+  const onInsert = useCallback(e => {
+    const nextList = list.concat(parseInt(number));
+    setList(nextList);
+    setNumber('');
+    inputEl.current.focus();
+  },[number, list]);
+
+  const avg = useMemo(() => getAverage(list), [list]);
+
+  return (
+    <div>
+      <input value={number} onChange={onChange} ref={inputEl} />
+      <button onClick={onInsert}>등록</button>
+      <ul>
+        {
+          list.map((value, index) => 
+            <li key={index}>{value}</li>
+          )
+        }
+      </ul>
+      <div>
+        <b>평균 값:</b>{avg}
+      </div>
+    </div>
+  );
+};
+
+export default Average;
+```
+
+useRef를 사용하여 ref를 설정하면, useRef를 통해 만든 객체 안의 current 값이 실제 엘리먼트를 가르키게 됩니다.
 
 
 >> 함수형 컴포넌트와 클래스 형 컴포넌트의 차이점이 무엇일까? 클래스 형 컴포넌트의 경우 state 기능 및 라이프사이클 기능을 사용할 수 있으며 임의 메서드를 정의할 수 있다는 점입니다. 반면 함수형 컴포넌트는 클래스형 컴포넌트보다 선언하기가 좀 더 편하고, 메모리 자원을 덜 사용한다는 장점입니다. 단순하게 데이터를 받아서 UI에 뿌려줄 경우 많이 사용합니다. 과거에는 클래스형에 비해서 state와 라이프사이클 API를 사용할 수 없다는 단점이 있었는데 v16.8 이후로 훅이 도입되면서 해결되었습니다. 지금 공식 문서에서도 함수형 컴포넌트 + 훅을 사용하는 것을 권고하고 있습니다.
