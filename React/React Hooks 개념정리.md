@@ -804,5 +804,123 @@ export default Average;
 
 useRef를 사용하여 ref를 설정하면, useRef를 통해 만든 객체 안의 current 값이 실제 엘리먼트를 가르키게 됩니다.
 
+## 커스텀 Hooks 만들기
+
+만약에 에러 컴포넌트에서 비슷한 기능을 공유하게 되는 일이 발생한다면 이를 우리만의 Hook을 작성하여 로직을 재사용 할 수 있습니다.
+
+### useInput.js
+
+```javascript
+import React from "react";
+import useInput from './useInput';
+
+const Info = () => {
+  const [ state, onChange ] = useInput({
+    name: '',
+    nickname: '',
+    age:''
+  });
+  const { name, nickname } = state;
+
+  return (
+    <div>
+      <div>
+        <input name="name" value={name} onChange={onChange} />
+        <input name="nickname" value={nickname} onChange={onChange} />
+      </div>
+      <div>
+        <div>
+          <b>이름:</b>
+          {name}
+        </div>
+        <div>
+          <b>닉네임:</b>
+          {nickname}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Info;
+```
+
+useInput Hook을 사용하면서 아까전에 작성했던 Info 컴포넌트가 훨씬 코드가 깔끔해졌습니다.
+
+
+## usePromise
+
+함수형 컴포넌트에서 Promise를 더 쉽게 사용할 수 있는 Hook을 만들어보겠습니다.
+
+### usePromise.js
+
+```javascript
+import { useState, useEffect } from 'react';
+
+export default function usePromise(createPromise, deps) {
+
+    const [resolved, setResolved] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const process = async () => {
+       setLoading(true);
+       try {
+         const result = await createPromise();
+         setResolved(result);
+       } catch (e) {
+         console.log(e); // name: message
+         setError(e)
+       }
+       setLoading(false);
+    };
+    
+    useEffect(() => {
+        process();
+    }, deps);
+
+    return [resolved, loading, error];
+}
+```
+
+위 커스텀 훅에서 useState와 useEffect를 함께 사용하였습니다. 이 함수는 프로미스를 생성하는 promiseCreator와, 언제 프로미스를 새로 만들지에 대한 조건을 위한 deps 배열을 파라미터로 받아옵니다. 이 deps 배열은 useEffect의 두 번째 파라미터로 전달되며, 기본값은 비어있는 배열입니다.
+
+useEffect를 사용하실 때 주의하실 점이 있는데, useEffect에 파라미터로 전달해주는 함수에서 async를 사용하면 안됩니다. 예를 들어서 다음 코드는 오류를 발생하는 코드입니다.
+
+```javascript
+useEffect(asyc () => {});
+```
+
+useEffect에서는 뒷정리 함수를 반환해야 하는데, async를 사용하게 되면 함수가 아닌 프로미스를 반환하기 때문에 오류가 발생하게 됩니다.
+
+이제 이 Hook을 사용하는 예제 컴포넌트를 작성해보겠습니다.
+
+### UsePromiseSample.js
+
+```javascript
+import React from 'react';
+import usePromise from './usePromise';
+
+const wait = () => {
+    return new Promise(resolve => {
+        setTimeout(() => resolve('Hello hooks!'), 3000);
+    });
+}
+
+const UsePromiseSample = () => {
+    const [resolved, loading, error] = usePromise(wait, []);
+
+    if (loading) return <div>로딩중...!</div>;
+    if (error) return <div>에러 발상!</div>;
+    if (!resolved) return null;
+
+    return <div>{resolved}</div>;
+};
+
+export default usePromiseSample;
+```
+
+>> awiat 키워드가 적용되는 대상은 반드시 프로미스 객체를 반환해야 await가 의도한 대로 동작합니다. 일반적으로 await의 대상이 되는 비동기 처리 코드는 Axios 등 프로미스를 반환하는 API 호출 함수입니다.
+
 
 >> 함수형 컴포넌트와 클래스 형 컴포넌트의 차이점이 무엇일까? 클래스 형 컴포넌트의 경우 state 기능 및 라이프사이클 기능을 사용할 수 있으며 임의 메서드를 정의할 수 있다는 점입니다. 반면 함수형 컴포넌트는 클래스형 컴포넌트보다 선언하기가 좀 더 편하고, 메모리 자원을 덜 사용한다는 장점입니다. 단순하게 데이터를 받아서 UI에 뿌려줄 경우 많이 사용합니다. 과거에는 클래스형에 비해서 state와 라이프사이클 API를 사용할 수 없다는 단점이 있었는데 v16.8 이후로 훅이 도입되면서 해결되었습니다. 지금 공식 문서에서도 함수형 컴포넌트 + 훅을 사용하는 것을 권고하고 있습니다.
