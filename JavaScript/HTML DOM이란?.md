@@ -7,6 +7,18 @@ HTML 문서의 정보는 노드 트리라고 불리는 계층적 구조에 저�
 
 >> 노드는 tree 구조에서 root 노드를 포함한 모든 각각 객체를 node라고 표현합니다. head, body, title, script, h1 등의 태그뿐 아니라 태그 안의 텍스트나 속성 등도 모두 노드에 속합니다. 이 중 HTML 태그를 요소 노드라고 부르고 요소 노드 안에 있는 글자를 텍스트 노드라고 부르기도 합니다.
 
+## Dcument 객체란?
+
+Document 객체는 웹 페이지 그 자체를 의미합니다.
+
+웹 페이지에 존재하는 HTML 요소에 접근하고자 할 때는 반드시 Document 객체부터 시작해야 합니다.
+Document 메소드 Document 객체는 HTML 요소와 관련된 작업을 도와주는 다양한 메소드를 제공합니다.
+
+- HTML 요소의 선택
+- HTML 요소의 생성
+- HTML 이벤트 핸들러 추가
+- HTML 객체의 선택
+
 ## 노드의 종류
 
 W3C HTML DOM 표준에 다르면, HTML 문서의 모든 것은 노드입니다. HTML 문서를 구성하는 대표적인 노드의 종류는 다음과 같습니다.
@@ -21,3 +33,5 @@ W3C HTML DOM 표준에 다르면, HTML 문서의 모든 것은 노드입니다. 
 
 5. 주석 노드: HTML 문서의 모든 주석은 주석 노드입니다.
 
+
+#### 참조: https://wit.nts-corp.com/2019/02/14/5522, http://www.tcpschool.com/javascript/js_dom_document
