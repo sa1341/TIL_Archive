@@ -13,4 +13,91 @@
 기존에 Maven을 이용하면 XML 기반으로 빌드 처리를 작성합니다. 내용이 복잡해지면 XML 기반에 의한 묘사는 상당히 어렵습니다. 반면에 Gradle은 Java와 거의 비슷한 코드를 써서 빌드 처리를 관리 할 수 있습니다. 그래서 많은 Java 개발자들이 Maven을 Gradle을 더 선호하는지도 모르겠습니다.
 
 
+## Gradle 프로젝트 초기화
 
+Gradle 개발을 하기 위해서 먼저 프로젝트를 준비합니다.
+
+1. 프로젝트를 생성할 위치로 이동
+
+- cd /Users/junyoung/privacy/dev
+
+2. 프로젝트 디렉토리를 만듭니다.
+
+- 여기에서는 `GradleApp`이라는 이름으로 디렉토리를 만들기 위해 다음과 같이 명령을 실행합니다.
+
+- mkdir GradleApp
+
+3. 프로젝트 디렉터리로 이동합니다.
+
+- cd GradleApp
+
+4. 마지막으로 프로젝트를 초기화 합니다.
+
+- gradle init --type java-application
+
+`gradle init`이라는 것이 Gradle 초기화를 위한 명령어입니다. 이후에 --type java-application는 Java 응용 프로그램 프로젝트 유형을 지정합니다.
+
+## Gradle 프로젝트 구조
+
+Gradle 프로젝트 구조는 아래와 같습니다.
+
+![image](https://user-images.githubusercontent.com/22395934/110622153-6dcff480-81de-11eb-9dbc-4764751fcf13.png)
+
+#### .gradle 디렉토리
+
+Gradle이 사용하는 폴더입니다. 작업(task)로 생성된 파일이 저장됩니다. 이 내용을 편집하는 일은 거의 없습니다.
+
+#### gradle 디렉토리
+
+이것도 Gradle이 필요한 경우 사용할 디렉토리입니다. 기본적으로 Gradle 환경을 정리한 `Wrapper 파일`이라는 파일들이 저장되어 있습니다.
+
+#### src 디렉토리
+
+프로젝트에서 만든 프로그램 관련 디렉토리입니다. 프로젝트에서 사용하는 파일(소스코드, 각종 리소스 파일 등)은 모두 포함됩니다.
+
+#### build.gradle
+
+Gradle 기본 빌드 설정 파일입니다. 이 안에 프로젝트 빌드 처리에 대해서 내용이 작성되어 있습니다.
+
+#### gradlew, gradlew.bat
+
+이 2개는 Gradle 명령입니다. bat가 붙어있는 것이 Windows 용이고, macOS 및 Linux 용입니다.
+
+#### settings.gradle
+
+프로젝트에 대한 설정 정보를 작성한 파일입니다.
+가장 중요한 것은 src 디렉토리입니다. 이 안에 개발하는 프로그램에서 사용하는 파일이 모두 저장됩니다. 다음으로 중요한 것은 `build.gradle` 파일입니다. 이것은 빌드 파일이고 해서 빌드 처리의 내용을 작성하는 파일입니다. 이 파일은 Groovy 언어로 작성되어 있습니다.
+
+>> MSA(Micro Service Architecture) 구조로 프로젝트를 구성할 경우 root 프로젝트 하위로 모듈을 추가할 경우 settings.gradle 파일에 모듈을 추가한다고 명시를 해야 합니다.
+
+## gradle init 명령과 type 종류
+
+- java-application: Java 애플리케이션 프로젝트 작성에 대한 타입입니다. 기본적으로 App.java 파일이 제공됩니다.
+
+- java-library: Java 라이브러리 프로젝트 생성을 위한 타입입니다. 단순히 샘플로 제공되는 소스 코드 파일이 응용 프로그램의 메인 클래스가 되어 있지 않다는 정도의 차이입니다. 
+
+## 컴파일 및 실행
+
+#### 프로그램 컴파일
+
+- gradle compileJava 
+
+컴파일은 compileJava라는 테스크로 제공합니다. 이것은 Java 소스 코드를 컴파일 하기 위한 것입니다.
+
+#### 프로그램 실행
+
+- gradle run
+
+java-application 타입의 프로젝트에는 run 테스크라는 것이 제공되고, 이를 실행하여 메인 클래스를 실행할 수 있습니다. 디폴트로 App.java가 실행됩니다.
+
+#### 프로그램 패키지
+
+- gradle jar
+
+jar 테스크는 그 이름대로 프로그램을 jar 파일에 모와서 저장합니다. 이는 프로젝트에 생성되는 build 디렉토리 하위에 libs 디렉토리에 저장됩니다.
+
+#### 프로젝트 클린
+
+- gradle clean
+
+프로젝트를 빌드할 때에 build 디렉토리에 여러 파일이 저장됩니다. clean 작업은 이 파일들을 제거하고 빌드 이전 상태로 되돌립니다.
