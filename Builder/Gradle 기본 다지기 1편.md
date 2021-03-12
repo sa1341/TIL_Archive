@@ -241,3 +241,182 @@ gradle -q hello
 ```
 
 이로 표시되는 출력은 상당히 심플하게 될 것입니다.
+
+## doFirst와 doLast
+
+테스크는 이렇게 task 후에 {} 부분에 처리를 쓰는 것만으로 만들 수 있습니다. 사실 보통은 이런 작성법은 많이 쓰지 않습니다.
+
+일반적인 테스크의 형태를 정리하면, 대체로 다음과 같은 형태가 됩니다.
+
+```java
+task 테스크명 {
+
+    doFirst {
+        ...... 수행할 처리 ......
+    }
+
+    doLast {
+        ...... 수행할 처리 ......
+    }
+}
+```
+
+테트크 {}에는 doFirst, doLast라는 것이 준비됩니다. 이것은 일종의 클로저입니다. 이들은 각각 다음과 같은 기능을 한다.
+
+ - doFirst: 최초에 수행하는 액션입니다.
+ - doLast: 최후에 수행하는 액션입니다.
+
+ 테스크는 준비된 `액션`을 순서대로 실행해 나가는 역할을 합니다. 액션이라는 것은 구체적으로 처리의 `실행 단위`같은 것입니다. 테스크 중에는 여러 가지 액션이 준비되어 있고, 그것이 순차적으로 실행됩니다.
+
+ doFirst과 doLast 그 액션의 최초, 최후에 실행됩니다. 즉, `테스크의 기본적인 처리`등이 있을 때는 그전에 실행하는 것과 후에 실행하는 것을 이렇게 준비합니다.
+
+ 아래 예제코드를 살펴보겠습니다.
+
+```java
+task hello {
+    doLast {
+        println("이것은 hello 테스크의 doLast입니다.");
+    }
+    doFirst {
+        println("이것은 hello 테스크의 doFirst입니다.");
+    }
+}
+```
+위의 테스크를 실해앟면 doFirst의 처리내용이 먼저 실행이 되고, doLast의 println 함수가 호출이 됩니다.
+
+
+## 매개 변수 전달
+
+테스크는 수행할 때 필요한 값을 매개 변수로 전달할 수 있습니다. 단순히 작업 처리 중 변수를 사용하면 됩니다. 예를 들어, 다음과 같습니다.
+
+```java
+gradle msg -Px=값
+```
+
+이렇게 -P 다음에 변수명을 지정하고 그 뒤에 등호로 값을 지정합니다. 변수 name에 `junyoung` 값을 전달하고 싶다면 -Pname=junyoung 식으로 기술하면 됩니다.
+
+또 다른 사용예제를 살펴보겠습니다. 아래는 숫자를 전달하여 그 숫자까지를 더하는 예제입니다.
+
+```java
+task hello {
+    doLast {
+        def n = max.toInteger()
+        for (def i in 1..n) {
+          println("No," + i + " count.")
+        }
+        println("end.")
+     }
+}
+```
+
+테스크는 "max"라는 변수를 사용하여 최대값을 지정합니다. 
+
+```java
+gradle hello -Pmax=5
+```
+
+#### 실행결과
+
+```java
+> Tas: hello
+No,1 count.
+No,2 count.
+No,3 count.
+No,4 count.
+No,5 count.
+end.
+```
+
+이 예제에서는 def n = max.toInteger()와 같이 하여 변수 max를 정수 값으로 변환한 것을 변수 n에 대입하고 있습니다. 그리고 이 n 값을 이용하여 for문으로 반복 계산을 실시하고 있습니다. 이런 상태로 매개 변수를 사용하여 쉽게 값을 변수로 전달할 수 있습니다.
+
+## 다른 테스크 호출
+
+테스크에서 다른 테스크를 호출해야 하는 경우도 있습니다. 예를 들어 아래와 같은 테스크가 있다고 합시다.
+
+```java
+task a {...}
+task b {...}
+```
+
+a와 b라는 테스크가 있을 때, 테스크 a에서 테스크 b를 호출하려면 어떻게 해야 하는가? Java 적으로 생각하면 아래와 같이 호출하면 될거라 생각합니다.
+
+```java
+b()
+```
+
+하지만 이렇게 작동을 하지 않습니다. `tasks`에 있는 작업 객체 안의 메소드를 호출하여 수행해야 합니다
+
+작업하는 것은 모든 tasks라고 객체에 정리하고 있습니다. 예를 들어 a, b라는 테스크가 있다면 tasks.a과 tasks.b로 지정할 수 있습니다. 이 테스크 객체 안에 있는 `execute`라는 메서드를 호출하여 테스크를 수행할 수 있습니다.
+
+```java
+tasks.a.execute()
+tasks.b.execute()
+```
+
+이런 식으로 실행하여 테스크 a, b를 호출합니다.
+
+### 종속 테스크 지정
+
+어떤 테스크를 수행할 때, 다른 작업 수행이 필수적인 경우도 있습니다. 이러한 경우에는 `dependsOn`라는 기능을 사용할 수 있습니다. 이는 다음과 같이 작성합니다.
+
+```java
+task 테스크명 (dependsOn: '테스크') {
+    ..... 중략 .....
+}
+```
+
+또는 다음과 같은 작성도 가능합니다.
+
+```java
+task 테스크명 {
+    dependsOn: '테스크'
+    ...... 중략 ......
+}
+```
+
+이와 같이 기술해 두면 작업이 호출될 때, 먼저 dependsOn에 지정된 작업을 수행하고 그것이 끝난 후에 테스크의 본 처리를 수행합니다.
+
+여러 테스크를 지정해야 하는 경우는 테스크명을 배열로 지정합니다. ['a', 'b', 'c']와 같은 식입니다. 이 경우 최초에 작성한 테스크부터 실행됩니다.
+
+##### 예제코드 
+
+```java
+task hello(dependsOn:['aaa', 'bbb'])  {
+    doFirst {
+        println("*** start:hello task ***")
+    }
+    doLast {
+        println("*** end:hello task ***")
+    }
+}
+ 
+task aaa {
+    doLast {
+        println("<< This is A task! >>")
+    }
+}
+ 
+task bbb {
+    doLast {
+        println("<< I'm task B!! >>")
+    }
+}
+```
+
+#### 실행결과
+
+```java
+> Task :aaa
+<< This is A task! >>
+
+> Task :bbb
+<< I'm task B!! >>
+
+> Task :hello
+*** start:hello task ***
+*** end:hello task ***
+```
+최초에 aaa 테스크, bbb 테스크가 실행되면, 이후에 hello 테스크가 호출되었는지 알 수 있습니다. dependsOn에 의해, aaa, bbb가 종속 테스크가 되는 테스크가 실행된 후가 아니면 hello가 실행되지 않게 됩니다.
+
+ #### 참조: http://www.devkuma.com/books/pages/1076
+
