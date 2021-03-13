@@ -418,5 +418,117 @@ task bbb {
 ```
 최초에 aaa 테스크, bbb 테스크가 실행되면, 이후에 hello 테스크가 호출되었는지 알 수 있습니다. dependsOn에 의해, aaa, bbb가 종속 테스크가 되는 테스크가 실행된 후가 아니면 hello가 실행되지 않게 됩니다.
 
- #### 참조: http://www.devkuma.com/books/pages/1076
+ ## DefaultTask 상속 클래스
 
+Gradle은 표준으로 다양한 테스크가 포함되어 있는데, 이것들은 `DefaultTask`라는 클래스를 상속한 클래스로 준비되어 있습니다. 이 DefaultTask 상속 클래스는 자신의 테스크를 만들어 커스텀 마이징 할 수 있습니다.
+
+```java
+class 클래스 extends DefaultTask {
+    ..... 필드 .....
+
+    void 메서드(인수) {
+        ..... 처리 .....
+    }
+
+    @TaskAction
+    void 메서드() {
+        ..... 처리 .....
+    }
+}
+```
+
+클래스는 DefaultTask라는 클래스를 상속하여 만듭니다. 이 클래스 내에 테스크로 수행할 처리를 메서드로 제공합니다. 이 메서드에는 @TaskAction 어노테이션을 붙여 둔다. 그러면 테스크로 실행되었을 때, 이 메서드가 호출됩니다.
+
+테스크로 사용하는 각종의 값은 필드로 사용할 수 있어야 합니다. 이것은 그대로 이용해도 되지만, 외부에서 사용하는 경우 private 필드로 설정하여 접근을 위한 메서드를 따로 제공하는 것이 스마트합니다.
+
+간단한 예제코드를 살펴보겠습니다.
+
+```java
+class Calc extends DefaultTask {
+    private int num
+    private String op
+
+
+    void num(p1) {
+        num = p1
+    }
+
+    void op(p1) {
+        op = p1
+    }
+
+    @TaskAction
+    void calc() {
+        switch(op) {
+            case 'total':
+                int total = 0
+                for (def i in 1..num) {
+                    total += i
+                }
+                println("total: ${total}")
+            break;
+
+            case 'count':
+                for (def i in 1..num) {
+                    println("NO, ${i}")
+                }
+            break;
+
+            default:
+                println('not found operator...')
+        }
+    }
+}
+```
+
+Calc 클래스에는 calc라는 테스크 액션을 준비하고 있습니다. 여기에서 num와 op의 값에 따라 총의 계산과 수치 계산을 하고 있습니다.
+
+### Calc 클래스를 지정한 테스크
+
+그럼, DefaultTask 상속 클래스를 이용하는 테스크는 어떻게 작성할 수 있을까요? 아래와 같습니다.
+
+```java
+task 테스크(type: 클래스) {
+    ..... 수행할 처리 ......
+}
+```
+
+테스크의 ()에는 인수로 `type` 값을 준비하고, 이 type에서 사용하는 클래스를 지정합니다.
+
+실제로 수행하는 처리에는 사용하는 클래스에 필드로 준비되어 있는 변수에 값을 할당하는 처리를 준비해 둡니다. 이렇게 하면, 클래스의 각 필드의 값을 변경하여 테스크 메서드를 실행할 수 있습니다.
+
+```java
+task total(type:Calc) {
+    group 'jun'
+    description 'Task for calculating total.'
+    num 100
+    op 'total'
+}
+ 
+task count(type:Calc) {
+    group 'jun'
+    description 'Task for count number.'
+    num 10
+    op 'count'
+}
+```
+여기에서는 앞 전에 Calc 클래스를 type에 지정한 total, count라는 두 가지 테스크를 만들었습니다. gradle total라고 실행하면 100까지의 합계가 계산됩니다.
+
+```java
+$ gradle total
+
+> Task :total
+total: 5050
+
+
+BUILD SUCCESSFUL in 0s
+1 actionable task: 1 executed
+```
+
+이들은 모두 상속의 Calc 클래스에 있는 메서드를 호출하는 것입니다. group와 description은 DefaultTask 클래스에 있는 것으로, 각 그룹명과 설명 텍스트를 설정합니다.
+
+그리고 Calc 클래스에 준비되어 있는 num와 op으로 계산의 정수 값와 작업의 유형을 지정하고 있습니다.
+
+이런 식으로 task로 정의된 가운데, type 지정한 클래스의 메서드를 호출하여 필요한 설정을 합니다. 그러면, 그 설정이 된 후에 테스크 액션이 수행됩니다.
+
+ #### 참조: http://www.devkuma.com/books/pages/1076
