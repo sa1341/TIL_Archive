@@ -45,3 +45,38 @@ Java GC는 객체가 가비지인지 판별하기 위해서 reachbility라는 �
 - 메서드 영역의 정적 변수에 의한 참조
 
 > 여기서 힙 내의 다른 객체에 의한 참조를 제외한 나머지 3개가 root set입니다. 
+
+# Java 1.8 이후의 GC 변경사항
+
+힙 영역이 기존에는 New / Survive / Old / Perm / Native에서 New / Survive / Old / Metaspace로 변경 되었습니다.
+
+Java7까지의 Permanent
+
+1. Class의 Meta 정보
+2. Method의 Meta 정보
+3. Static Object
+4. 상수화된 String Object
+5. Class와 관련된 배열 객체 Meta 정보
+6. JVM 내부적인 객체들과 최적화 컴파일러(JIT)의 최적화 정보
+
+Java8에서의 Metaspace과 Heap 분리
+
+1. Class의 Meta 정보 -> Metaspace 영역으로 이동
+2. Method의 Meta 정보 -> Metaspace 영역으로 이동
+3. Static Object -> Heap 영역으로 이동
+4. 상수화된 String Object -> Heap 영역으로 이동
+5. Class와 관련된 배열 객체 Meta 정보 -> Metaspace 영역으로 이동
+6. JVM 내부적인 객체들과 최적화 컴파일러(JIT)의 최적화 정보 ->  Metaspace 영역으로 이동
+
+
+PermGen 영역에 저장되어 문제를 유발하던 Static Object는 Heap 영역으로 옮겨서 최대한 GC 대상이 되도록 변경 되었습니다.
+
+> OutOfMemoryError: PerGen Space error이 발생하는 것을 본적이 있다면 이는 Permanent Generation 영역이 꽉 찼을때 발생하고 Memory leak가 발생했을 때 생기게 됩니다. Memory leak의 가장 흔한 이유중에 하나로 메모리에 로딩된 클래스와 클래스 로더가 종료될 때 이것들이 가비지 컬레션이 되지 않을 때 발생합니다.
+
+
+수정될 필요가 없는 정보만 Metaspace에 저장하고 Metaspace에는 JVM이 필요에 따라서 리사이징 할 수 있는 구조로 개선되었습니다.
+
+PermGen은 Java8부터 Metaspace로 완벽하게 대체 되었고, Metaspace는 클래스 메타 데이터를 native 메모리에 저장하고 메모리가 부족할 경우 이를 자동으로 늘려줍니다. Java8의 장점중에 하나로 OutOfMemoryError: PermGen Space error는 더 이상 볼 수 없고 JVM 옵션으로 사용했던 PermSize와 MaxPermSize는 더 이상 사용할 필요가 없어졌습니다. 대신에 MetaspaceSize 및 MaxMetaspaceSize가 새롭게 사용되게 되었습니다.
+
+
+
