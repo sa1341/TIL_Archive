@@ -40,3 +40,13 @@ openssl enc -d -des3 -in cipertext.bin -out plaintext2.txt;
 위의 명령은 enc -d -des3 -in cipertext.bin -out plaintext2.txt;
 ```
 위의 명령은 enc -d 옵션으로 인해서 cipertext.bin 파일을 plaintext2.txt 파일로 복호화하겠다는 의미입니다.
+
+## SSL 프로토콜 활성화 확인
+
+```
+openssl s_client -connect [해당 IP 및 도메인]:443 -ssl3 -- sslv3 프로토콜 통신 확인
+openssl s_client -connect [해당 IP 및 도메인]:443 –ssl2 -- sslv2 프로토콜 통신 확인
+openssl s_client -connect [해당 IP 및 도메인]:443 –tls1 -- tls1.0 프로토콜 통신 확인
+openssl s_client -connect [해당 IP 및 도메인]:443 –tls1_1 -- tls1.1 프로토콜 통신 확인
+openssl s_client -connect [해당 IP 및 도메인]:443 –tls1_2 -- tls1.2 프로토콜 통신 확인
+```
