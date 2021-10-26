@@ -2,6 +2,12 @@
 
 회사에서는 Gradle 대신 다른 빌드 툴인 Maven으로 프로젝트에서 사용하는 외부 라이브러리들을 땡겨오고 빌드를 하고 있습니다. 개인적으로 집에서 스프링 부트를 공부하면서 다른 빌드 툴을 사용하고 싶어서 Gradle을 사용한적이 있습니다. 물론 시중에 나온 대부분의 책이 Gradle을 사용하여 프로젝트를 진행하기도 해서 무작정 사용만 하고 빌드 스크립트에 대해서 자세히 알아보지는 않아서 오늘은 Gradle에 대해서 최소한 기본적인 것을 배우고 싶어서 정리를 해보았습니다.
 
+## Gradle 라이브러리 다운로드 경로
+
+- Mac OS 환경
+
+> /Users/${yourId}/.gradle/caches/modules-2/files-2.1/${packageName}/${libname}
+
 ## Gradle의 등장
 
 기본적으로 Java에서는 빌드 도구를 이용해서 프로젝트 관리가 이루어졌고, Apach Ant라는 빌드 도구가 등장한 것은 2000년입니다. 그 후에 아직까지도 실무에서 많이 사용하고 있는 Apach Maven이라는 빌드 툴이 등장하였고, `이것이 현 시점 Java 빌드 도구의 사실상 표준이라고 할 수 있습니다.`
@@ -68,7 +74,7 @@ Gradle 기본 빌드 설정 파일입니다. 이 안에 프로젝트 빌드 처�
 프로젝트에 대한 설정 정보를 작성한 파일입니다.
 가장 중요한 것은 src 디렉토리입니다. 이 안에 개발하는 프로그램에서 사용하는 파일이 모두 저장됩니다. 다음으로 중요한 것은 `build.gradle` 파일입니다. 이것은 빌드 파일이고 해서 빌드 처리의 내용을 작성하는 파일입니다. 이 파일은 Groovy 언어로 작성되어 있습니다.
 
->> MSA(Micro Service Architecture) 구조로 프로젝트를 구성할 경우 root 프로젝트 하위로 모듈을 추가할 경우 settings.gradle 파일에 모듈을 추가한다고 명시를 해야 합니다.
+> 멀티모듈(Multi Module)구조로 프로젝트를 구성할 경우 root 프로젝트 하위로 모듈을 추가할 경우 settings.gradle 파일에 모듈을 추가한다고 명시를 해야 합니다.
 
 ## gradle init 명령과 type 종류
 
@@ -110,7 +116,7 @@ jar 테스크는 그 이름대로 프로그램을 jar 파일에 모와서 저장
 apply plugin: 'java'
 ```
 
-차음에 `apply plugi:`라는 것은 Gradle 플러그인을 사용하기 위한 것입니다.
+차음에 `apply plugin:`라는 것은 Gradle 플러그인을 사용하기 위한 것입니다.
 
 `java`는 Java 프로그램을 위한 기능을 제공하는 플러그인입니다. compileJava라는 테스크는 Java 플러그인에서 제공되는 것입니다.
 
@@ -197,7 +203,8 @@ classpath '...라이브러리...'
 
 ## 테스크 정의
 
-Gradle은 명령에 의해 `테스크(task)`을 수행하는 프로그램입니다. 위에서  gradle compileJava라든지 gradle run와 같은 명령어를 사용하였는데, 이들도 모두 `compileJava 테스크 수행`, `run 테스크 수행`이라는 것입니다.
+Gradle은 명령에 의해 `테스크(task)`을 수행하는 프로그램입니다. 위에서 gradle compileJava라든지 gradle run와 같은 명령어를 사용하였는데, 
+이들도 모두 `compileJava 테스크 수행`, `run 테스크 수행`이라는 것입니다.
 
 ### 테스크 정의 기본
 
@@ -282,7 +289,7 @@ task hello {
     }
 }
 ```
-위의 테스크를 실해앟면 doFirst의 처리내용이 먼저 실행이 되고, doLast의 println 함수가 호출이 됩니다.
+위의 테스크를 실면 doFirst의 처리내용이 먼저 실행이 되고, doLast의 println 함수가 호출이 됩니다.
 
 
 ## 매개 변수 전달
