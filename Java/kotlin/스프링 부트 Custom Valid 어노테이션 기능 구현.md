@@ -141,7 +141,6 @@ data class BoardDto(
 
 이제 위 코드에서 Custom 검증 어노테이션인 @StringFormatDateTime을 BoardDto 객체의 createdAt 변수에 적용하였습니다.
 
-
 #### BoardApi.class
 
 ```kotlin
