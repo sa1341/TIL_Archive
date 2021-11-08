@@ -95,10 +95,9 @@ phoneNumber 변수명은 그대로 두고,  `@JsonProperty` 어노테이션의 v
 
 ![image](https://user-images.githubusercontent.com/22395934/118245020-367e0c80-b4db-11eb-809b-aee363a238e0.png)
 
-## 2. @@JsonNaming
+## 2. @JsonNaming
 
 만약 변수 일부분이 아니고 전체 API 변수 명 정책이 카멜 케이스에서 스네이크 케이스 방식으로 변경되면 각각 @JsonPropery로 수정을 하면 개발자들이 힘들 것입니다. 이런 경우에 @JsonNaming 어노테이션 입니다
-
 
 
 ```kotlin
@@ -109,9 +108,11 @@ data class UserRequest(
     var email: String? = null,
     var address: String? = null,
     var phoneNumber: String? = null
+)
 ```
 
-@JsonNaming의 PropertyNamingStrategy 엘리먼트의 값을 `PropertyNamingStrategy.SnakeCaseStrategy::class` 주게 되면 해당 객체의 JSON 변수 key 이름은 전부 스네이크 케이스 방식으로 변경 됩니다. 
+@JsonNaming의 PropertyNamingStrategy 엘리먼트의 값을 `PropertyNamingStrategy.SnakeCaseStrategy::class` 주게 되면 
+해당 객체의 JSON 변수 key 이름은 전부 스네이크 케이스 방식으로 변경 됩니다. 
 
 
 > 코틀린에서는 Java와 다르게 .class로 넘기지 않고 참조 방식으로 ::class 형태로 전달합니다. 
