@@ -9,7 +9,8 @@ systemd의 용도는 프로세스를 관리하고 `유닛(Unit)`으로 서비스
 ## systemctl 명령어
 
 1. 서비스 시작: systemctl start 서비스명
-    - systemctl start httpd
+    - sudo systemctl start http
+    - sudo systemctl start docker
 2. 서비스 정지: systemctl stop 서비스명
     - systemctl stop httpd
 3. 서비스 구동 상태확인: systemctl status 서비스명
@@ -19,3 +20,6 @@ systemd의 용도는 프로세스를 관리하고 `유닛(Unit)`으로 서비스
 6. 서비스 비활성화: systemctl disable 서비스명
 7. 모든 서비스 확인: systemctl list-units --type service -all
 8. 서비스(Unit)목록 확인: systemctl list-units
+
+
+> Unix 기반 시스템에서는 1024번 포트 이하에 있는 포트를 well-known port라고 하는데 이 포트들을 열 때에는 관리자(sudo) 권한이 필요합니다.
