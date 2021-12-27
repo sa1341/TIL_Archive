@@ -42,6 +42,17 @@ sudo yum -y update
 sudo yum install java-1.8.0
 ```
 
+> Java 8버전이 아닌 버전이 EC2에 이미 설정되어 있다면 아래와 같은 명령어로 버전 변경이 가능합니다.
+
+```java
+// java 버전변경
+sudo /usr/sbin/alternatives --config java
+
+// 기존 7버전 삭제 
+sudo yum remove java-1.7.0-openjdk -y
+```
+
+
 ## Jenkins 설치
 
 ```java
