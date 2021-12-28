@@ -20,6 +20,18 @@ ex)
 - docker run -d -p 1234:6379 redis
 - -p 옵션을 이용: 호스트의 1234포트를 컨테이너의 6379포트로 연결, localhost의 1234포트로 접속하면 하면 redis를 사용 가능
 
+## 도커 gracefully 종료
+
+도커 컨테이너를 종료할 때 실행중인 어플리케이션이 요청을 다 처리하고 종료할 수 있도록 사용하는 명령어는 아래와 같습니다.
+
+```java
+// 도커 컨테이너 id 확인
+docker ps | grep application-name
+
+// gracefully 종료 명령어
+docker container kill -s 15 container_id
+```
+
 
 
 #### 참조: http://pyrasis.com/Docker/Docker-HOWTO#search
