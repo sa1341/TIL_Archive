@@ -68,6 +68,13 @@ yum으로 jenkins 설치 시 패키지가 없기 때문에 별도로 [젠킨스 
 
 설치가 완료됬다면 Jenkins를 실행시켜 봅니다.
 
+만약 위의 과정을 거쳐도 jenkins 패키지 설치가 실패한다면 에러에 대해서 스택오버플로우 형님들이 해결해주니 걱정할 필요가 없습니다.
+저같은 경우에는 아래와 같이 `amazon-linux-extras` 패키지관리자로 epel을 추가 설치하고 다시 젠킨스 설치를 실행하니 정상적으로 동작했습니다.
+
+```java
+sudo amazon-linux-extras install epel
+```
+
 ```java
 // 젠킨스 기동
 sudo systemctl start jenkins
@@ -103,7 +110,7 @@ SSH 프로토콜로 cpu-worker-instance 서버로 배포를 해야 하기 때문
 ### Jenkins 서버 공개키/개인키 생성
 
 ```java
-ssh-genkey -t rsa -f ~/.ssh/id_rsa
+ssh-keygen -t rsa -f ~/.ssh/id_rsa
 ```
 
 위의 명령어를 실행하면 /home/.ssh 디렉토리 하위에 id_rsa(개인키), id_rsa.pub(공개키)가 생성된 것을 확인 할 수 있습니다.
