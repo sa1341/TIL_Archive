@@ -40,7 +40,12 @@ sudo yum -y update
 
 // Java 8 설치
 sudo yum install java-1.8.0
+
+// Java 8 및 컴파일러까지 포함
+sudo yum install java-1.8.0-openjdk-devel.x86_64
 ```
+
+위의 일반 버전으로만 설치하면 ec2에 javac 컴파일러가 설치가 되지 않기 때문에 `openjdk-devel`가 붙은 패키지로 설치하는 걸 권고합니다. Jenkins webhook 연동 시에 컴파일러가 없으면 build가 되지 않기 때문에 저는 해당버전으로 설치하였습니다.
 
 > Java 8버전이 아닌 버전이 EC2에 이미 설정되어 있다면 아래와 같은 명령어로 버전 변경이 가능합니다.
 
