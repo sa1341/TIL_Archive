@@ -97,7 +97,7 @@ public class ChannelWriteExam {
 | DELETE_ON_CLOSE | 채널이 닫힐 때 파일을 삭제합니다.|
 | TRUNCATE_EXISTING | 파일을 열 때 파일 내용을 모두 삭제 합니다.(0 바이트로 만들고, WRITE와 같이 사용합니다.)|
 
-> java.nio.Path / Files 클래스를 이용해 미리 파일 상태를 확인해서 Path 객체를 생성한 뒤 적절한 옵션을 사용하면 됩니다. 
+> java.nio.Path.Files 클래스를 이용해 미리 파일 상태를 확인해서 Path 객체를 생성한 뒤 적절한 옵션을 사용하면 됩니다. 
 
 ### ByteBuffer 객체 생성
 
