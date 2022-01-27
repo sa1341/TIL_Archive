@@ -125,8 +125,38 @@ launch 메서드와의 차이점은 Deferred<T>를 통해 결괏값을 반환한
 따라서 태스크가 종료되는 시점을 기다렸다가 결과를 받을 수 있도록 await()를 사용해 현재 스레드의 블로킹 없이 먼저 종료되면 결과를 가져올 수 있습니다.
     
     
-    
+## 코루틴 시작시점 늦추기    
    
+async에서 기본 인수는 문맥을 지정할 수 있고, 문맥 이외에도 몇 가지 매개변수를 더 지정할 수 있습니다.
     
-   
-    
+```kotlin
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
+import kotlin.system.measureTimeMillis
+
+suspend fun doWork11(): String {
+    delay(1000)
+    return "Work1"
+}
+
+suspend fun doWork22(): String {
+    delay(3000)
+    return "Work3"
+}
+
+
+
+fun main(args: Array<String>) = runBlocking {
+    val time = measureTimeMillis {
+        val one = async(start = CoroutineStart.LAZY) { doWork11() }
+        val two = async(start = CoroutineStart.LAZY) { doWork22() }
+        println("AWAIT: ${one.await() + "_" + two.await()}")
+    }
+    println("Completed in $time ms")
+}    
+```   
+
+위 예제코드를 보면 start 매개변수를 사용하면 async() 함수의 시작 시점을 조절할 수 있습니다. `CoroutineStart.LAZY`를 사용하면 코루틴의 메서드를 호출하거나 await() 메서드를 호출하는
+시점에서 async() 메서드가 실행되도록 코드를 작성할 수 있습니다.    
