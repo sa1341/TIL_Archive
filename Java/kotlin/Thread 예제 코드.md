@@ -160,3 +160,57 @@ fun main(args: Array<String>) = runBlocking {
 
 위 예제코드를 보면 start 매개변수를 사용하면 async() 함수의 시작 시점을 조절할 수 있습니다. `CoroutineStart.LAZY`를 사용하면 코루틴의 메서드를 호출하거나 await() 메서드를 호출하는
 시점에서 async() 메서드가 실행되도록 코드를 작성할 수 있습니다.    
+
+    
+## ThreadPoolExecutor를 이용한 비동기 처리 방법    
+    
+```kotlin
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
+
+fun main(args: Array<String>) {
+
+    val queue = LinkedBlockingQueue<Runnable>(6)
+    val executorService = ThreadPoolExecutor(1, 3, 3, TimeUnit.SECONDS, queue)
+
+    for (i in 0..9) {
+        executorService.execute(Task())
+    }
+
+    executorService.awaitTermination(5, TimeUnit.SECONDS)
+    executorService.shutdown()
+}
+
+class Task: Runnable {
+    override fun run() {
+        try {
+            println("Thread Name: ${Thread.currentThread().name}")
+            TimeUnit.SECONDS.sleep(1)
+        } catch (e: InterruptedException) {
+
+        }
+    }
+}       
+```    
+    
+ThreadPoolExecutor는 스레드 풀을 편리하게 관리해주는 클래스 입니다.
+기본적으로 4개의 생성자가 존재합니다. 각 매개변수는 아래와 같습니다.
+
+- corePoolSize: 풀 사이즈를 의미합니다. 최초 생성되는 스레드 사이즈이며 해당 사이즈로 스레드가 유지됩니다. 많다고 성능이 잘나오는 것도 아니고 적다고 안나오는 것도 아니기 때문에 충분히 테스트하면서 적절한 개수를 선택해야 합니다.
+
+- maximumPoolSize : 해당 풀에 최대로 유지할 수 있는 개수를 의미합니다. 이 역시 Job에 맞게 적절히 선택해야 합니다.
+
+- keepAliveTime : corePoolSize보다 스레드가 많아졌을 경우 maximumPoolSize까지 스레드가 생성이 되는데 keepAliveTime 시간만큼 유지했다가 다시 corePoolSize 로 유지되는 시간을 의미합니다. (그렇다고 무조건 maximumPoolSize까지 생성되는 건 아니다.)
+
+- unit : keepAliveTime 의 시간 단위를 의미합니다.
+
+- workQueue : corePoolSize보다 스레드가 많아졌을 경우, 남는 스레드가 없을 경우 해당 큐에 담습니다.
+    
+> ThreadPoolExecutor는 기본적으로 Task를 담기 위한 큐를 LinkedBlockingQueue로 사용하고 있습니다.
+
+
+
+
+#### 참조: http://wonwoo.ml/index.php/post/2254    
+    
