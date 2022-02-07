@@ -110,5 +110,4 @@ InnoDB에서 기본적으로 순순한 SELECT 작업은 아무런 잠금을 걸�
 
 이러한 특성 때문에 동시처리 능력이 다른 격리수준보다 떨어지고, 성능저하가 발생하게 됩니다.
 
-
 #### 참조: https://joont92.github.io/db/%ED%8A%B8%EB%9E%9C%EC%9E%AD%EC%85%98-%EA%B2%A9%EB%A6%AC-%EC%88%98%EC%A4%80-isolation-level/
