@@ -2,7 +2,7 @@
 
 Maven을 Builder로 사용할 때 꼭 알아둬야 하는 개념들에 대해서 정리하였습니다.
 
-plugin, phase, goal, LifeCycle 총 4가지가 기본 개념인데 이 부분에 대해서 포승팅하겠습니다.
+plugin, phase, goal, LifeCycle 총 4가지가 기본 개념인데 이 부분에 대해서 포스팅하겠습니다.
 
 ## Plugin
 
