@@ -114,7 +114,6 @@ data class UserRequest(
 @JsonNaming의 PropertyNamingStrategy 엘리먼트의 값을 `PropertyNamingStrategy.SnakeCaseStrategy::class` 주게 되면 
 해당 객체의 JSON 변수 key 이름은 전부 스네이크 케이스 방식으로 변경 됩니다. 
 
-
 > 코틀린에서는 Java와 다르게 .class로 넘기지 않고 참조 방식으로 ::class 형태로 전달합니다. 
 
 ### PropertyNamingStrategy.class
