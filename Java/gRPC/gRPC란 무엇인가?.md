@@ -54,5 +54,4 @@ message Person {
 따라서 본문의 사이즈가 훨씬 간결해집니다.
 
 
-
 > gRPC 공식문서 링크: https://grpc.io/docs/what-is-grpc/introduction/ 
