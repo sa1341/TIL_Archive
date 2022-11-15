@@ -63,7 +63,7 @@ public class FlowController{
 
 위의 소스에서는 LogCollector, LogSet을 interface로 두어서 타입을 추상화 하여 클라이언트에게 구체적인 모습은 드러내지 않고 변경을 유연하다는 걸 보여줍니다.
 
-아래에 백명석 강사님이 설명하신 변경에 유여한 코드를 따라서 만들어본 예제입니다.
+아래에 백명석 강사님이 설명하신 변경에 유연한 코드를 따라서 만들어본 예제입니다.
 mills 단위로 경과시간을 구해주는 ProceuduralStopWatch가 클래스를 설계하였습니다.
 
 ```java
