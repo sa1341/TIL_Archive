@@ -371,5 +371,4 @@ subject.next(1);
 // => completed subscription.dispose();
 ```
 
-
 #### 참조: https://poiemaweb.com/angular-rxjs
