@@ -90,7 +90,3 @@ given() 메서드에서는 Controller에서 UserService의 findUser() 메서드�
 #### 실행 결과
 ![image](https://user-images.githubusercontent.com/22395934/115011572-c08d8200-9ee9-11eb-99a9-3f60d89180d7.png)
 
-
-
-
-
