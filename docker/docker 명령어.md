@@ -20,6 +20,20 @@ ex)
 - docker run -d -p 1234:6379 redis
 - -p 옵션을 이용: 호스트의 1234포트를 컨테이너의 6379포트로 연결, localhost의 1234포트로 접속하면 하면 redis를 사용 가능
 
+## 도커 이미지 빌드 
+
+Jenkins에서 Github 소스코드를 빌드 후에 Docker 컨테이너에 톰캣내부로 배포를 하는 경우 아래와 배포서버에 도커와 `Dockerfile`이 있으면 가능합니다.
+먼저, Dockerfile을 vi 에디터로 연후에, 아래와 tomcat 9.0 버전 이미지를 받은 후 해당 컨테이너의 webapps 경로로 war 파일을 복사하도록 도커파일을 작성하였습니다.
+
+```java
+FROM tomcat:9.0
+
+LABEL org.opencontainers.image.authors="a79007741@gmail.com"
+
+COPY ./hello-world.war /usr/local/tomcat/webapps
+```
+
+
 ## 도커 gracefully 종료
 
 도커 컨테이너를 종료할 때 실행중인 어플리케이션이 요청을 다 처리하고 종료할 수 있도록 사용하는 명령어는 아래와 같습니다.
