@@ -145,5 +145,89 @@ yum list installed | grep httpd
 
 > https://docs.ansible.com/ansible/2.9/modules/list_of_all_modules.html
 
+## Ansible Playbook 사용하기
+
+위에 Ansible이 제공해준 명령어로 관리대상 노드들에게 일괄적으로 명령어를 실행하는 예제코드를 실습해봤습니다. 하지만 이러한 명령어들을 매번 자주 사용하게 된다면 그때마다 명령어를 보관하고 있다가 매번 직접 실행해야 합니다. 이렇게 되면 실수로 잘못된 명령어를 전달할 가능성도 있기 때문에 별도로 `yml` 설정파일에 해당 task들을 가지고 있다가 스크립트 방식으로 실행이 가능합니다.
+
+`ansible-playbook`이 이러한 기능들을 제공합니다.
+
+```
+# Ansible-server
+
+1. vi first-playbook.yml // yml 파일 생성
+
+2. 관리노드 그룹 추가를 위한 playbook 설정파일 생성
+---
+- name: Add an ansible hosts
+  hosts: localhost
+  tasks:
+   - name: Add an ansible hosts
+   - blockinfile:
+       path: /etc/ansible/hosts
+       block: |
+         [mygroup]
+         172.17.0.5
+```
+
+일단 Ansible-server에 관리대상 노드그룹을 추가하기 위한 명령어를 스크립트로 생성했습니다.
+
+
+playbook 명령어 실행
+
+```
+ansible-playbook first-playbook.yml
+```
+
+#### 실행결과
+
+```
+cat /etc/ansible/hosts
+
+[devops]
+172.17.0.3
+172.17.0.4
+# BEGIN ANSIBLE MANAGED BLOCK
+[mygroup]
+172.17.0.5
+# END ANSIBLE MANAGED BLOCK
+```
+
+정상적으로 관리대상 그룹이 추가된 것을 확인할 수 있었습니다.
+
+
+### 파일 copy playbook
+
+```
+- name: Ansible Copy Example Local to Remtoe
+  hosts: devops
+  tasks:
+    - name: copying file with playbook
+      copy:
+        src: ~/sample.txt
+        dest: /tmp
+        owner: root
+        mode: 0644
+```
+
+### Tomcat 설치 playbook
+
+```
+---
+- name: Download Tomcat9 from tomcat.apache.org
+  hosts: devops
+  tasks:
+   - name: Create a Directory /opt/tomcat9
+     file:
+       path: /opt/tomcat9
+       state: directory
+       mode: 0755
+   - name: Download Tomcat using get_url
+     get_url:
+       url: https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.65/bin/apache-tomcat-9.0.65.tar.gz
+       dest: /opt/tomcat9
+       mode: 0755
+       checksum: sha512:https://downloads.apache.org/tomcat/tomcat-9/v9.0.65/bin/apache-tomcat-9.0.65.tar.gz.sha512
+```
+
 
 > 참고: 인프런 CI/CD 강의
