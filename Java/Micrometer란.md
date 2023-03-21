@@ -84,5 +84,4 @@ Micrometer에는 JVM, 캐시, ExecutorService 및 로깅 서비스를 모니터�
 
 - Thread 및 CPU 사용률: JvmThreadMetrics, ProcessorMetrics
 
-
 > 참조 블로그: https://jongmin92.github.io/2019/12/03/Spring/micrometer/
