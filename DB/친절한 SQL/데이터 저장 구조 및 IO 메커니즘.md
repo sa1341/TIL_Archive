@@ -62,7 +62,6 @@ order by extent_id;
 
 ## Table Full Scan vs Index Range Scan
 
-
 테이블에 저장된 데이터를 읽는 방식은 두 가지입니다. 테이블 전체를 스캔해서 읽는 방식과 인덱스를 이용해서 읽는 방식입니다. 전자는 `Table Full Scan`이고, 후자는 `Index Range Scan` 방식입니다. 
 
 인덱스를 이용한 테이블 엑세스는 인덱스에서 `일정량`을 스캔하면서 얻은 ROWID로 테이블 레코드를 찾아가는 방식입니다. ROWID는 테이블 레코드가 디스크 상에 어디 저장됐는지를 가르키는 위치 정보입니다.
