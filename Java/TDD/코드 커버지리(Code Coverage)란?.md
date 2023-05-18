@@ -466,5 +466,4 @@ jacocoTestCoverageVerification를 jacocoTestReport 이후에 수행하도록 선
 
 위 이미지는 코드 커버리지를 충족시키지 못할 경우 Gradle build가 실패나면서 커버리지 충족 기준들을 보여주고 있습니다.
 
-
 > 참조: https://tecoble.techcourse.co.kr/post/2020-10-24-code-coverage/, [우아한형제 기술 블로그](https://techblog.woowahan.com/2661/), https://seller-lee.github.io/java-code-coverage-tool-part2
