@@ -65,7 +65,7 @@ Helper.completionStage()
         return i / 0;
     }).exceptionally(e -> {
         log.info("{} in exceptionally", e.getMessage());
-        retur로n 0;
+        return 0;
     }).thenApplyAsync(value -> {
         log.info("{} in thenAcceptAsync", value);
     });
