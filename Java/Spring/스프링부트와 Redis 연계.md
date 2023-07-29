@@ -208,5 +208,22 @@ Hash 타입의 데이터를 처리할 때는 `hmset, hget, hgetall, hkey, hlen` 
 
 ![image](https://user-images.githubusercontent.com/22395934/178099804-7f507165-34f3-4a4b-950e-4b7ff6f7abb2.png)
 
+## 7. Master & Slave & Sentinel란?
+
+기본적으로 Redis Cluster를 사용하는 경우 크게 2가지로 나눌 수 있습니다.
+
+- `Master & Slave 복제 방식`
+- `Master & Slave & Sentinel 방식`
+
+Master & Slave 복제 방식은 마스터에서 슬레이브로 데이터가 복제되는 방식입니다. 이 경우 Master에서만 쓰기 작업이 이루어지고,
+Slave에서는 읽기만 가능합니다. 만약 마스터에 장애가 발생한다면 writing 작업이 중단 될 수 있기 때문에 서비스에 영향을 줄 수 있습니다.
+즉, fail over를 지원하지 않습니다.
+
+반면에, Master & Slave & Sentinel 구조는 위의 Master & Slave 복제는 동일하지만, 센티널이라는 독립적인 서버가 Master와 Slave를 주기적으로
+`heartbeat`를 통해서 모니터링을 하고, 만약 마슨터에서 장애가 발생되면 기존에 기동중인 Slave를 Master로 승격시켜서 서비스 중단을 막을 수 있습니다.
+즉, fail over가 지원이 되는 구조입니다.
+
+실무에서는 master-sentienl 1개, slave-sentinel 2개 서비스가 띄워져 있다면 
+만약 마스터 서버에 장애 발생시 센티널 서버들은 쿼럼을 통해서 어떤 slave를 master로 승격시킬지 투표를 한다고 합니다.
 
 > 참조 사이트: https://velog.io/@max9106/Spring-Boot-Redis,https://coding-start.tistory.com/130, https://cheese10yun.github.io/redis-getting-started/
