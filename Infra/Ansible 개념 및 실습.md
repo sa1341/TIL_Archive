@@ -229,5 +229,4 @@ cat /etc/ansible/hosts
        checksum: sha512:https://downloads.apache.org/tomcat/tomcat-9/v9.0.65/bin/apache-tomcat-9.0.65.tar.gz.sha512
 ```
 
-
 > 참고: 인프런 CI/CD 강의
