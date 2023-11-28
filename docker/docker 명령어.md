@@ -33,10 +33,92 @@ LABEL org.opencontainers.image.authors="a79007741@gmail.com"
 COPY ./hello-world.war /usr/local/tomcat/webapps
 ```
 
+### 도커파일 작성
+
+가장 단순한 Node.js 프로그램용 애플리케이션 이미지를 빌드하는 예제입니다.
+하기에 package.json, server.js라는 두 가지 파일로 구성했습니다.
+실습을 하기전에 `npm install express --save` 명령으로 Express에 대한 의존성을 설정하고 설치해야 합니다.
+
+#### package.json 파일
+
+```js
+{
+    "name": "simple-node",
+    "version": "1.0.0",
+    "description": "A sample simple application for Kubernetes Up & Running",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js"
+    },
+    "author": "jean",
+    "dependencies": {
+        "express": "^4.18.2"
+    }
+}
+
+```
+
+#### server.js 파일 
+
+```js
+var express = require('express');
+
+var app = express();
+app.get('/', function(req, res) {
+    res.send('Hello World!');
+});
+
+app.listen(3000, function() {
+    console.log('Listening on port 3000!');
+    console.log('http://localhost:3000');
+});
+```
+
+이를 도커 이미지로 패키징하려면 .dockerignore와 Dockerfile이라는 두 개의 파일을 추가로 생성해야 합니다.
+
+#### .dockerignore
+
+```sh
+node_modules
+```
+
+.dockerignore 파일은 이미지에 복사할 때 무시해야 되는 파일 세트를 정의합니다.
+
+#### Docerfile 
+
+```Dockerfile
+# Node.js 16 이미지에서 시작
+FROM node:16
+
+# 모든 명령이 실행될 이미지 내부의 디렉토리를 지정
+WORKDIR /usr/src/app 
+
+# 패키지 파일 복사와 의존성 설치
+COPY package*.json ./
+RUN npm install
+RUN npm install express
+
+# 모든 앱 파일을 이미지에 복사
+COPY . .
+
+# 컨테이너를 시작할 때 실행할 기본 명령 지정
+CMD [ "npm", "start" ]
+```
+
+모든 도커파일은 컨테이너 이미지를 기반으로 빌드됩니다. 위 도커파일은 빌드 시 도커허브의 `node:16` 이미지에서 시작되도록 지정했습니다.
 
 ## 도커 gracefully 종료
 
 도커 컨테이너를 종료할 때 실행중인 어플리케이션이 요청을 다 처리하고 종료할 수 있도록 사용하는 명령어는 아래와 같습니다.
+
+### 도커 이미지 생성
+
+```sh
+docker build -t simple-node .
+
+docker run --rm -p 3000:3000 simple-node
+```
+
 
 ```java
 // 도커 컨테이너 id 확인
@@ -47,5 +129,4 @@ docker container kill -s 15 container_id
 ```
 
 
-
-#### 참조: http://pyrasis.com/Docker/Docker-HOWTO#search
+#### 참조: http://pyrasis.com/Docker/Docker-HOWTO#search, Kubernetes Up & Running
