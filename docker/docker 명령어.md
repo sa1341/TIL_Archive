@@ -120,15 +120,6 @@ docker run --rm -p 3000:3000 simple-node
 
 도커 컨테이너를 종료할 때 실행중인 어플리케이션이 요청을 다 처리하고 종료할 수 있도록 사용하는 명령어는 아래와 같습니다.
 
-### 도커 이미지 생성
-
-```sh
-docker build -t simple-node .
-
-docker run --rm -p 3000:3000 simple-node
-```
-
-
 ```java
 // 도커 컨테이너 id 확인
 docker ps | grep application-name
