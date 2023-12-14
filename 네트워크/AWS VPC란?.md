@@ -18,7 +18,7 @@ VPC를 적용하면 아래와 같이 인스턴스가 VPC에 속함으로써 네�
 ![Untitled Diagram drawio (4)](https://user-images.githubusercontent.com/22395934/148958443-d35e761a-4c56-44ec-b3d9-e5ae4e4428e7.png)
 
 
-## VPC 구성요소
+## 1. VPC 구성요소
 
 VPC는 독립된 하나의 네트워크를 구성하기 위한 가장 큰 단위입니다. 각 region에 종속되며 RFC1918이라는 사설 IP 대역에 맞추어 설계해야 한다. 
 
